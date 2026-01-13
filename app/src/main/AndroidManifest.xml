@@ -9,10 +9,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Clase15">
-        <activity android:name=".Home"></activity>
-        <activity android:name=".views.HomeActivity" />
-        <activity android:name=".Dashboard" />
-        <activity android:name=".Intro">
+        <activity android:name=".Home" android:exported="false"></activity>
+        <activity android:name=".views.HomeActivity" android:exported="false" />
+        <activity android:name=".Dashboard" android:exported="false" />
+        <activity android:name=".Intro" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

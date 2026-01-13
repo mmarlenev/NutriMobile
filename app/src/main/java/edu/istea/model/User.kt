@@ -1,8 +1,7 @@
 package edu.istea.model
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
-import java.util.*
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class User(var name: String,
