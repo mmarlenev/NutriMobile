@@ -10,12 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <DatePicker
-        android:id="@+id/dp_fecha_entorno"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:calendarViewShown="false" />
-
     <Spinner
         android:id="@+id/spinner_tipo_medicion"
         android:layout_width="match_parent"
@@ -40,5 +34,10 @@
             android:padding="8dp"
             android:text="Unidad" />
     </LinearLayout>
+
+    <DatePicker
+        android:id="@+id/dp_fecha_entorno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>
