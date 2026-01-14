@@ -179,6 +179,32 @@ class DBHelper(context: Context) :
         }
     }
 
+    fun updatePlanta(planta: Planta) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_PLANTA_NOMBRE, planta.nombre)
+            values.put(COLUMN_PLANTA_GENETICA, planta.genetica)
+            values.put(COLUMN_PLANTA_FECHA_ORIGEN, planta.fechaOrigen)
+            val updatedRows = db.update(TABLE_PLANTAS, values, "$COLUMN_PLANTA_ID = ?", arrayOf(planta.id.toString()))
+            if (updatedRows > 0) {
+                saveHistorialEvento(db, "Planta Actualizada", "Se actualizó la planta '${planta.nombre}'.")
+            }
+        }
+    }
+
+    fun deletePlanta(plantaId: Int, plantaNombre: String) {
+        performDbOperation { db ->
+            db.delete(TABLE_ETAPAS, "$COLUMN_ETAPA_PLANTA_ID = ?", arrayOf(plantaId.toString()))
+            db.delete(TABLE_ENTORNO, "$COLUMN_ENTORNO_PLANTA_ID = ?", arrayOf(plantaId.toString()))
+            db.delete(TABLE_ALIMENTACION, "$COLUMN_ALIMENTACION_PLANTA_ID = ?", arrayOf(plantaId.toString()))
+
+            val deletedRows = db.delete(TABLE_PLANTAS, "$COLUMN_PLANTA_ID = ?", arrayOf(plantaId.toString()))
+            if (deletedRows > 0) {
+                saveHistorialEvento(db, "Planta Eliminada", "Se eliminó la planta '${plantaNombre}' y todos sus eventos.")
+            }
+        }
+    }
+
     fun saveEtapa(etapa: Etapa) {
          performDbOperation { db ->
             val values = ContentValues()

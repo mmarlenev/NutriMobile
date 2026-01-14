@@ -11,7 +11,7 @@ import edu.istea.dao.DBHelper
 import edu.istea.model.Planta
 import edu.istea.views.AddPlantaDialogFragment
 
-class PlantasActivity : AppCompatActivity(), AddPlantaDialogFragment.AddPlantaDialogListener {
+class PlantasActivity : AppCompatActivity(), AddPlantaDialogFragment.PlantaDialogListener {
 
     private lateinit var plantaAdapter: PlantaAdapter
     private lateinit var dbHelper: DBHelper
@@ -23,13 +23,13 @@ class PlantasActivity : AppCompatActivity(), AddPlantaDialogFragment.AddPlantaDi
         dbHelper = DBHelper(this)
 
         val rvPlantas: RecyclerView = findViewById(R.id.rv_plantas)
-        plantaAdapter = PlantaAdapter()
+        plantaAdapter = PlantaAdapter(::handleModify, ::handleDelete)
         rvPlantas.adapter = plantaAdapter
         rvPlantas.layoutManager = LinearLayoutManager(this)
 
         val fabAddPlanta: FloatingActionButton = findViewById(R.id.fab_add_planta)
         fabAddPlanta.setOnClickListener {
-            val dialog = AddPlantaDialogFragment()
+            val dialog = AddPlantaDialogFragment.newInstance()
             dialog.show(supportFragmentManager, "AddPlantaDialogFragment")
         }
 
@@ -45,5 +45,22 @@ class PlantasActivity : AppCompatActivity(), AddPlantaDialogFragment.AddPlantaDi
         dbHelper.savePlanta(planta)
         loadPlantas()
         Toast.makeText(this, "Planta añadida: ${planta.nombre}", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onPlantaUpdated(planta: Planta) {
+        dbHelper.updatePlanta(planta)
+        loadPlantas()
+        Toast.makeText(this, "Planta actualizada: ${planta.nombre}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handleModify(planta: Planta) {
+        val dialog = AddPlantaDialogFragment.newInstance(planta)
+        dialog.show(supportFragmentManager, "ModifyPlantaDialogFragment")
+    }
+
+    private fun handleDelete(planta: Planta) {
+        dbHelper.deletePlanta(planta.id, planta.nombre)
+        loadPlantas()
+        Toast.makeText(this, "Planta eliminada: ${planta.nombre}", Toast.LENGTH_SHORT).show()
     }
 }

@@ -1,8 +1,10 @@
 package edu.istea.adapter
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -10,11 +12,14 @@ import androidx.recyclerview.widget.RecyclerView
 import edu.istea.R
 import edu.istea.model.Planta
 
-class PlantaAdapter : ListAdapter<Planta, PlantaAdapter.PlantaViewHolder>(PlantaDiffCallback()) {
+class PlantaAdapter(
+    private val onModifyClick: (Planta) -> Unit,
+    private val onDeleteClick: (Planta) -> Unit
+) : ListAdapter<Planta, PlantaAdapter.PlantaViewHolder>(PlantaDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlantaViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.planta_list_item, parent, false)
-        return PlantaViewHolder(view)
+        return PlantaViewHolder(view, onModifyClick, onDeleteClick)
     }
 
     override fun onBindViewHolder(holder: PlantaViewHolder, position: Int) {
@@ -22,11 +27,35 @@ class PlantaAdapter : ListAdapter<Planta, PlantaAdapter.PlantaViewHolder>(Planta
         holder.bind(planta)
     }
 
-    class PlantaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class PlantaViewHolder(
+        itemView: View,
+        private val onModifyClick: (Planta) -> Unit,
+        private val onDeleteClick: (Planta) -> Unit
+    ) : RecyclerView.ViewHolder(itemView) {
         private val nombre: TextView = itemView.findViewById(R.id.tv_planta_nombre)
         private val info: TextView = itemView.findViewById(R.id.tv_planta_info)
+        private val modifyButton: Button = itemView.findViewById(R.id.btn_modificar_planta)
+        private val deleteButton: Button = itemView.findViewById(R.id.btn_eliminar_planta)
+        private lateinit var currentPlanta: Planta
+
+        init {
+            modifyButton.setOnClickListener {
+                onModifyClick(currentPlanta)
+            }
+            deleteButton.setOnClickListener {
+                AlertDialog.Builder(itemView.context)
+                    .setTitle("Confirmar Eliminación")
+                    .setMessage("¿Estás seguro de que quieres eliminar esta planta y todos sus eventos asociados?")
+                    .setPositiveButton("Eliminar") { _, _ ->
+                        onDeleteClick(currentPlanta)
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            }
+        }
 
         fun bind(planta: Planta) {
+            currentPlanta = planta
             nombre.text = planta.nombre
             info.text = "${planta.genetica} - Origen: ${planta.fechaOrigen}"
         }

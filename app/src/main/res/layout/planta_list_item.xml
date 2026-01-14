@@ -21,4 +21,27 @@
         android:textAppearance="?attr/textAppearanceListItemSecondary"
         android:textColor="@color/secondary_text"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/btn_modificar_planta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Modificar"
+            style="?android:attr/buttonBarButtonStyle" />
+
+        <Button
+            android:id="@+id/btn_eliminar_planta"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Eliminar"
+            style="?android:attr/buttonBarButtonStyle" />
+    </LinearLayout>
+
 </LinearLayout>
