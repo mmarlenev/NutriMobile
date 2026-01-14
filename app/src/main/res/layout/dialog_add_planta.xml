@@ -15,7 +15,8 @@
         android:id="@+id/rg_genetica"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
 
         <RadioButton
             android:id="@+id/rb_autofloreciente"
@@ -34,6 +35,7 @@
     <DatePicker
         android:id="@+id/dp_fecha_origen"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
 
 </LinearLayout>
