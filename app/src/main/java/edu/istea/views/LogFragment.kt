@@ -39,9 +39,7 @@ class LogFragment(val contextMain: Context) :Fragment() {
                 if(db.validateUser(User(user.text.toString(),
                         "x",
                         "x",
-                        "x",
-                        "x",
-                    "x","x","x",pass.text.toString()))){
+                        pass.text.toString()))){
                     // TODO: ir al dashboard de usuarios
                     Toast.makeText(view.context,"Bienvenido!", Toast.LENGTH_SHORT).show()
                     var intent = Intent(view.context, Home::class.java)

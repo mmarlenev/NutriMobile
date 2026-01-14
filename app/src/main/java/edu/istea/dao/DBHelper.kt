@@ -5,233 +5,380 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import edu.istea.model.Alimentacion
+import edu.istea.model.Entorno
+import edu.istea.model.Etapa
+import edu.istea.model.HistorialEvento
+import edu.istea.model.Planta
 import edu.istea.model.User
-import edu.istea.model.Comida
-import java.lang.Exception
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DBHelper(context: Context) :
-    SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION) {
+    SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
-        private val DATABASE_NAME = "saludable.db"
-        private val DATABASE_VERSION = 11
-        internal val factory = null
-        val TABLE_USER = "users"
-        val COLUMN_NAME = "name"
-        val COLUMN_SURNAME ="surname"
-        val COLUMN_DNI="dni"
-        val COLUMN_SEXO="sexo"
-        val COLUMN_BIRTH="birth"
-        val COLUMN_CITY="city"
-        val COLUMN_TRAT="tratamiento"
-        val COLUMN_NPILA = "npila"
-        val COLUMN_PASS = "pass"
-        val COLUMN_ID = "id"
-        val TABLE_COMIDA="comidas"
-        val COLUMN_IDC = "idc"
-        val COLUMN_TIPO="tipoComida"
-        val COLUMN_COMIDAPRINCIPAL="comidaPrincipal"
-        val COLUMN_COMIDASECUNDARIA="comidaSecundaria"
-        val COLUMN_BEBIDA="bebida"
-        val COLUMN_POSTREBOOLEAN="postreBoolean"
-        val COLUMN_POSTRE="postre"
-        val COLUMN_TENTACIONBOOOLEAN="tentacionBoolean"
-        val COLUMN_TENTACION="tentacion"
-        val COLUMN_HAMBREBOOLEAN="hambreBoolean"
-        val COLUMN_DIA="dia"
-        val COLUMN_HORA="hora"
-        val COLUMN_USUARIOID="usuarioId"
-        var ID:Int=0
-    }
-    override fun onCreate(db: SQLiteDatabase?) {
+        private const val DATABASE_NAME = "MisRegistros.db"
+        private const val DATABASE_VERSION = 18 // Incremented version to force clean upgrade
 
+        // Define all table and column names as constants
+        private const val TABLE_USER = "users"
+        private const val COLUMN_ID = "id"
+        private const val COLUMN_NAME = "name"
+        private const val COLUMN_SURNAME = "surname"
+        private const val COLUMN_NPILA = "npila"
+        private const val COLUMN_PASS = "pass"
+
+        private const val TABLE_PLANTAS = "plantas"
+        private const val COLUMN_PLANTA_ID = "id"
+        private const val COLUMN_PLANTA_NOMBRE = "nombre"
+        private const val COLUMN_PLANTA_GENETICA = "genetica"
+        private const val COLUMN_PLANTA_FECHA_ORIGEN = "fecha_origen"
+
+        private const val TABLE_ETAPAS = "etapas"
+        private const val COLUMN_ETAPA_ID = "id"
+        private const val COLUMN_ETAPA_PLANTA_ID = "planta_id"
+        private const val COLUMN_ETAPA_PLANTA_NOMBRE = "planta_nombre"
+        private const val COLUMN_ETAPA_ESTADO = "estado"
+        private const val COLUMN_ETAPA_FECHA = "fecha"
+
+        private const val TABLE_ENTORNO = "entorno"
+        private const val COLUMN_ENTORNO_ID = "id"
+        private const val COLUMN_ENTORNO_PLANTA_ID = "planta_id"
+        private const val COLUMN_ENTORNO_PLANTA_NOMBRE = "planta_nombre"
+        private const val COLUMN_ENTORNO_FECHA = "fecha"
+        private const val COLUMN_ENTORNO_TIPO = "tipo"
+        private const val COLUMN_ENTORNO_VALOR = "valor"
+        private const val COLUMN_ENTORNO_UNIDAD = "unidad"
+
+        private const val TABLE_ALIMENTACION = "alimentacion"
+        private const val COLUMN_ALIMENTACION_ID = "id"
+        private const val COLUMN_ALIMENTACION_PLANTA_ID = "planta_id"
+        private const val COLUMN_ALIMENTACION_PLANTA_NOMBRE = "planta_nombre"
+        private const val COLUMN_ALIMENTACION_FECHA = "fecha"
+        private const val COLUMN_ALIMENTACION_INSUMO = "insumo"
+        private const val COLUMN_ALIMENTACION_CANTIDAD = "cantidad"
+        private const val COLUMN_ALIMENTACION_UNIDAD = "unidad"
+
+        private const val TABLE_HISTORIAL = "historial"
+        private const val COLUMN_HISTORIAL_ID = "id"
+        private const val COLUMN_HISTORIAL_FECHA = "fecha"
+        private const val COLUMN_HISTORIAL_TIPO_EVENTO = "tipo_evento"
+        private const val COLUMN_HISTORIAL_DESCRIPCION = "descripcion"
+    }
+
+    override fun onCreate(db: SQLiteDatabase) {
         val createTableUser = ("CREATE TABLE " + TABLE_USER +
                 "(" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_NAME + " TEXT," +
                 COLUMN_SURNAME + " TEXT," +
-                COLUMN_DNI + " TEXT," +
-                COLUMN_SEXO + " TEXT," +
-                COLUMN_BIRTH + " TEXT," +
-                COLUMN_CITY + " TEXT," +
-                COLUMN_TRAT + " TEXT," +
                 COLUMN_NPILA + " TEXT," +
                 COLUMN_PASS + " TEXT )"
                 )
+        db.execSQL(createTableUser)
 
-        db?.execSQL(createTableUser)
-
-        val createComidaUser = ("CREATE TABLE " + TABLE_COMIDA +
-                "(" + COLUMN_IDC + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_TIPO + " TEXT," +
-                COLUMN_COMIDAPRINCIPAL + " TEXT," +
-                COLUMN_COMIDASECUNDARIA + " TEXT," +
-                COLUMN_BEBIDA + " TEXT," +
-                COLUMN_POSTREBOOLEAN + " TEXT," +
-                COLUMN_POSTRE + " TEXT," +
-                COLUMN_TENTACIONBOOOLEAN + " TEXT," +
-                COLUMN_TENTACION + " TEXT," +
-                COLUMN_HAMBREBOOLEAN + " TEXT," +
-                COLUMN_DIA + " TEXT," +
-                COLUMN_HORA + " TEXT," +
-                COLUMN_USUARIOID + " TEXT )"
+        val createTablePlantas = ("CREATE TABLE " + TABLE_PLANTAS +
+                "(" + COLUMN_PLANTA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_PLANTA_NOMBRE + " TEXT," +
+                COLUMN_PLANTA_GENETICA + " TEXT," +
+                COLUMN_PLANTA_FECHA_ORIGEN + " TEXT )"
                 )
+        db.execSQL(createTablePlantas)
 
-        db?.execSQL(createComidaUser)
+        val createTableEtapas = ("CREATE TABLE " + TABLE_ETAPAS +
+                "(" + COLUMN_ETAPA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_ETAPA_PLANTA_ID + " INTEGER," +
+                COLUMN_ETAPA_PLANTA_NOMBRE + " TEXT," +
+                COLUMN_ETAPA_ESTADO + " TEXT," +
+                COLUMN_ETAPA_FECHA + " TEXT )"
+                )
+        db.execSQL(createTableEtapas)
 
+        val createTableEntorno = ("CREATE TABLE " + TABLE_ENTORNO +
+                "(" + COLUMN_ENTORNO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_ENTORNO_PLANTA_ID + " INTEGER," +
+                COLUMN_ENTORNO_PLANTA_NOMBRE + " TEXT," +
+                COLUMN_ENTORNO_FECHA + " TEXT," +
+                COLUMN_ENTORNO_TIPO + " TEXT," +
+                COLUMN_ENTORNO_VALOR + " TEXT," +
+                COLUMN_ENTORNO_UNIDAD + " TEXT )"
+                )
+        db.execSQL(createTableEntorno)
+
+        val createTableAlimentacion = ("CREATE TABLE " + TABLE_ALIMENTACION +
+                "(" + COLUMN_ALIMENTACION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_ALIMENTACION_PLANTA_ID + " INTEGER," +
+                COLUMN_ALIMENTACION_PLANTA_NOMBRE + " TEXT," +
+                COLUMN_ALIMENTACION_FECHA + " TEXT," +
+                COLUMN_ALIMENTACION_INSUMO + " TEXT," +
+                COLUMN_ALIMENTACION_CANTIDAD + " REAL," +
+                COLUMN_ALIMENTACION_UNIDAD + " TEXT )"
+                )
+        db.execSQL(createTableAlimentacion)
+
+        val createTableHistorial = ("CREATE TABLE " + TABLE_HISTORIAL +
+                "(" + COLUMN_HISTORIAL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                COLUMN_HISTORIAL_FECHA + " TEXT," +
+                COLUMN_HISTORIAL_TIPO_EVENTO + " TEXT," +
+                COLUMN_HISTORIAL_DESCRIPCION + " TEXT )"
+                )
+        db.execSQL(createTableHistorial)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db?.execSQL("DROP TABLE IF EXISTS " + TABLE_USER)
-        db?.execSQL("DROP TABLE IF EXISTS " + TABLE_COMIDA)
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        Log.w("DBHelper", "Upgrading database from version $oldVersion to $newVersion, which will destroy all old data")
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER)
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PLANTAS)
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ETAPAS)
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ENTORNO)
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALIMENTACION)
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_HISTORIAL)
         onCreate(db)
     }
 
-    fun saveUser(user: User) {
-        var db = this.writableDatabase
-
-        val values = ContentValues()
-
-        values.put(COLUMN_NAME, user.name)
-        values.put(COLUMN_SURNAME, user.surname)
-        values.put(COLUMN_DNI, user.dni)
-        values.put(COLUMN_SEXO, user.sexo)
-        values.put(COLUMN_BIRTH, user.birth.toString())
-        values.put(COLUMN_CITY,user.city)
-        values.put(COLUMN_TRAT, user.tratamiento)
-        values.put(COLUMN_NPILA, user.npila)
-        values.put(COLUMN_PASS, user.pass)
-        try {
-            db.insert(TABLE_USER, null, values)
-        } catch (e: Exception) {
-            Log.e("error insert", e.message.toString())
-        }
-
-
+    private fun getCurrentDate(): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        return sdf.format(Date())
     }
 
-    fun saveComida(comida: Comida) {
-        var db = this.writableDatabase
-
+    private fun saveHistorialEvento(db: SQLiteDatabase, tipo: String, descripcion: String) {
         val values = ContentValues()
-
-        values.put(COLUMN_TIPO, comida.tipoComida)
-        values.put(COLUMN_COMIDAPRINCIPAL, comida.comidaPrincipal)
-        values.put(COLUMN_COMIDASECUNDARIA, comida.comidaSecundaria)
-        values.put(COLUMN_BEBIDA, comida.bebida)
-        values.put(COLUMN_POSTREBOOLEAN, comida.postreBoolean)
-        values.put(COLUMN_POSTRE, comida.postre)
-        values.put(COLUMN_TENTACIONBOOOLEAN, comida.tentacionBoolean)
-        values.put(COLUMN_TENTACION, comida.tentacion)
-        values.put(COLUMN_HAMBREBOOLEAN, comida.hambreBoolean)
-        values.put(COLUMN_DIA, comida.dia)
-        values.put(COLUMN_USUARIOID, comida.usuarioId)
-        try {
-            db.insert(TABLE_COMIDA, null, values)
-        } catch (e: Exception) {
-            Log.e("error insert", e.message.toString())
-        }
-
-
+        values.put(COLUMN_HISTORIAL_FECHA, getCurrentDate())
+        values.put(COLUMN_HISTORIAL_TIPO_EVENTO, tipo)
+        values.put(COLUMN_HISTORIAL_DESCRIPCION, descripcion)
+        db.insert(TABLE_HISTORIAL, null, values)
     }
-    // validamos si el usuario esta en la base de datos , sino devuelve falso
-    fun validateUser(user: User): Boolean {
 
-        var db = this.readableDatabase
+    private fun <T> performDbOperation(operation: (SQLiteDatabase) -> T): T? {
+        val db = this.writableDatabase
+        var result: T? = null
+        db.beginTransaction()
+        try {
+            result = operation(db)
+            db.setTransactionSuccessful()
+        } catch (e: Exception) {
+            Log.e("DBHelper", "Database operation failed", e)
+        } finally {
+            db.endTransaction()
+            db.close()
+        }
+        return result
+    }
 
-        var query = "SELECT * FROM " + TABLE_USER
+    fun savePlanta(planta: Planta) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_PLANTA_NOMBRE, planta.nombre)
+            values.put(COLUMN_PLANTA_GENETICA, planta.genetica)
+            values.put(COLUMN_PLANTA_FECHA_ORIGEN, planta.fechaOrigen)
+            val id = db.insert(TABLE_PLANTAS, null, values)
+            if (id != -1L) {
+                 saveHistorialEvento(db, "Nueva Planta", "Se creó la planta '${planta.nombre}'.")
+            }
+        }
+    }
 
-        val cursor = db.rawQuery(query, null)
+    fun saveEtapa(etapa: Etapa) {
+         performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_ETAPA_PLANTA_ID, etapa.plantaId)
+            values.put(COLUMN_ETAPA_PLANTA_NOMBRE, etapa.plantaNombre)
+            values.put(COLUMN_ETAPA_ESTADO, etapa.estado)
+            values.put(COLUMN_ETAPA_FECHA, etapa.fecha)
+            val id = db.insert(TABLE_ETAPAS, null, values)
+             if (id != -1L) {
+                saveHistorialEvento(db, "Etapa", "'${etapa.plantaNombre}' cambió a la etapa '${etapa.estado}'.")
+             }
+        }
+    }
 
+    fun saveEntorno(entorno: Entorno) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_ENTORNO_PLANTA_ID, entorno.plantaId)
+            values.put(COLUMN_ENTORNO_PLANTA_NOMBRE, entorno.plantaNombre)
+            values.put(COLUMN_ENTORNO_FECHA, entorno.fecha)
+            values.put(COLUMN_ENTORNO_TIPO, entorno.tipo)
+            values.put(COLUMN_ENTORNO_VALOR, entorno.valor)
+            values.put(COLUMN_ENTORNO_UNIDAD, entorno.unidad)
+            val id = db.insert(TABLE_ENTORNO, null, values)
+            if (id != -1L) {
+                saveHistorialEvento(db, "Entorno", "Medición para '${entorno.plantaNombre}': ${entorno.tipo} de ${entorno.valor} ${entorno.unidad}.")
+            }
+        }
+    }
+
+    fun saveAlimentacion(alimentacion: Alimentacion) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_ALIMENTACION_PLANTA_ID, alimentacion.plantaId)
+            values.put(COLUMN_ALIMENTACION_PLANTA_NOMBRE, alimentacion.plantaNombre)
+            values.put(COLUMN_ALIMENTACION_FECHA, alimentacion.fecha)
+            values.put(COLUMN_ALIMENTACION_INSUMO, alimentacion.insumo)
+            values.put(COLUMN_ALIMENTACION_CANTIDAD, alimentacion.cantidad)
+            values.put(COLUMN_ALIMENTACION_UNIDAD, alimentacion.unidad)
+            val id = db.insert(TABLE_ALIMENTACION, null, values)
+            if (id != -1L) {
+                 saveHistorialEvento(db, "Alimentación", "Se añadió ${alimentacion.cantidad} ${alimentacion.unidad} de '${alimentacion.insumo}' a '${alimentacion.plantaNombre}'.")
+            }
+        }
+    }
+    
+    fun getAllHistorialEventos(): List<HistorialEvento> {
+        val eventos = mutableListOf<HistorialEvento>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_HISTORIAL ORDER BY $COLUMN_HISTORIAL_ID DESC", null)
         if (cursor.moveToFirst()) {
-
             do {
-                val nameDB = cursor.getString(cursor.getColumnIndex(COLUMN_NAME))
-                val passDB = cursor.getString(cursor.getColumnIndex(COLUMN_PASS))
-                // == compara valor literal equals compara valor + tipe
-                if (user.name.equals(nameDB) && user.pass.equals(passDB)) {
-                    return true
-                }
-
+                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_HISTORIAL_ID))
+                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_HISTORIAL_FECHA))
+                val tipo = cursor.getString(cursor.getColumnIndex(COLUMN_HISTORIAL_TIPO_EVENTO))
+                val desc = cursor.getString(cursor.getColumnIndex(COLUMN_HISTORIAL_DESCRIPCION))
+                eventos.add(HistorialEvento(id, fecha, tipo, desc))
             } while (cursor.moveToNext())
         }
-
-        return false
-
+        cursor.close()
+        db.close()
+        return eventos
     }
-
-    fun userActual(name: String, password: String):Int{
-        val db=writableDatabase
-        var idUser:Int = 0
-        val query= "SELECT * FROM " + TABLE_USER +" where name = '$name' and pass = '$password'"
-        val cursor = db.rawQuery(query,null)
-        if(cursor.count<=0){
-            cursor.close()
-            return 0
-        }
-        if(cursor.moveToFirst()){
-
-            do{
-                idUser =  cursor.getInt(cursor.getColumnIndex(COLUMN_ID))
-            }while(cursor.moveToNext())
+    
+    fun getAllPlantas(): List<Planta> {
+        val plantas = mutableListOf<Planta>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_PLANTAS ORDER BY $COLUMN_PLANTA_ID DESC", null)
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_PLANTA_ID))
+                val nombre = cursor.getString(cursor.getColumnIndex(COLUMN_PLANTA_NOMBRE))
+                val genetica = cursor.getString(cursor.getColumnIndex(COLUMN_PLANTA_GENETICA))
+                val fechaOrigen = cursor.getString(cursor.getColumnIndex(COLUMN_PLANTA_FECHA_ORIGEN))
+                plantas.add(Planta(id, nombre, genetica, fechaOrigen))
+            } while (cursor.moveToNext())
         }
         cursor.close()
+        db.close()
+        return plantas
+    }
+
+    fun getAllEtapas(): List<Etapa> {
+        val etapas = mutableListOf<Etapa>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_ETAPAS ORDER BY $COLUMN_ETAPA_ID DESC", null)
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_ETAPA_ID))
+                val plantaId = cursor.getInt(cursor.getColumnIndex(COLUMN_ETAPA_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndex(COLUMN_ETAPA_PLANTA_NOMBRE))
+                val estado = cursor.getString(cursor.getColumnIndex(COLUMN_ETAPA_ESTADO))
+                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_ETAPA_FECHA))
+                etapas.add(Etapa(id, plantaId, plantaNombre, estado, fecha))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return etapas
+    }
+
+    fun getAllEntornos(): List<Entorno> {
+        val entornos = mutableListOf<Entorno>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_ENTORNO ORDER BY $COLUMN_ENTORNO_ID DESC", null)
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_ENTORNO_ID))
+                val plantaId = cursor.getInt(cursor.getColumnIndex(COLUMN_ENTORNO_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_PLANTA_NOMBRE))
+                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_FECHA))
+                val tipo = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_TIPO))
+                val valor = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_VALOR))
+                val unidad = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_UNIDAD))
+                entornos.add(Entorno(id, plantaId, plantaNombre, fecha, tipo, valor, unidad))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return entornos
+    }
+
+    fun getAllAlimentacion(): List<Alimentacion> {
+        val alimentaciones = mutableListOf<Alimentacion>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_ALIMENTACION ORDER BY $COLUMN_ALIMENTACION_ID DESC", null)
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_ALIMENTACION_ID))
+                val plantaId = cursor.getInt(cursor.getColumnIndex(COLUMN_ALIMENTACION_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_PLANTA_NOMBRE))
+                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_FECHA))
+                val insumo = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_INSUMO))
+                val cantidad = cursor.getFloat(cursor.getColumnIndex(COLUMN_ALIMENTACION_CANTIDAD))
+                val unidad = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_UNIDAD))
+                alimentaciones.add(Alimentacion(id, plantaId, plantaNombre, fecha, insumo, cantidad, unidad))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return alimentaciones
+    }
+
+    fun saveUser(user: User) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_NAME, user.name)
+            values.put(COLUMN_SURNAME, user.surname)
+            values.put(COLUMN_NPILA, user.npila)
+            values.put(COLUMN_PASS, user.pass)
+            db.insert(TABLE_USER, null, values)
+        }
+    }
+
+    fun validateUser(user: User): Boolean {
+        val db = this.readableDatabase
+        return try {
+            val query = "SELECT * FROM $TABLE_USER WHERE $COLUMN_NAME = ? AND $COLUMN_PASS = ?"
+            val cursor = db.rawQuery(query, arrayOf(user.name, user.pass))
+            val userExists = cursor.count > 0
+            cursor.close()
+            userExists
+        } finally {
+            db.close()
+        }
+    }
+
+    fun userActual(name: String, password: String):Int {
+        val db = this.readableDatabase
+        var idUser = 0
+        try {
+            val query= "SELECT $COLUMN_ID FROM $TABLE_USER WHERE $COLUMN_NAME = ? AND $COLUMN_PASS = ?"
+            val cursor = db.rawQuery(query, arrayOf(name, password))
+            if(cursor.moveToFirst()){
+                idUser =  cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID))
+            }
+            cursor.close()
+        } finally {
+            db.close()
+        }
         return idUser
     }
 
-    fun getUserInfo(userId: Number):User{
-        val query = "SELECT * FROM "+TABLE_USER +" where id = '$userId'"
-        val db=writableDatabase
-        val cursor = db.rawQuery(query,null)
-        val lisTaLegajos: ArrayList<User> = ArrayList<User>();
-        if(cursor.moveToFirst()){
-            do{
-
+    fun getUserInfo(userId: Number): User? {
+        val db = this.readableDatabase
+        var user: User? = null
+        try {
+            val cursor = db.query(TABLE_USER, arrayOf(COLUMN_NAME, COLUMN_SURNAME, COLUMN_NPILA, COLUMN_PASS),
+                "$COLUMN_ID = ?", arrayOf(userId.toString()), null, null, null)
+            if(cursor.moveToFirst()){
                 val name =  cursor.getString(cursor.getColumnIndex(COLUMN_NAME))
                 val surname =  cursor.getString(cursor.getColumnIndex(COLUMN_SURNAME))
-                val dni =  cursor.getString(cursor.getColumnIndex(COLUMN_DNI))
-                val sexo =  cursor.getString(cursor.getColumnIndex(COLUMN_SEXO))
-                val birth =  cursor.getString(cursor.getColumnIndex(COLUMN_BIRTH))
-                val city =  cursor.getString(cursor.getColumnIndex(COLUMN_CITY))
-                val tratamiento =  cursor.getString(cursor.getColumnIndex(COLUMN_TRAT))
                 val npila =  cursor.getString(cursor.getColumnIndex(COLUMN_NPILA))
                 val password =  cursor.getString(cursor.getColumnIndex(COLUMN_PASS))
-                lisTaLegajos.add( User(name,surname,dni,sexo,birth,city,tratamiento,npila,password))
-            }while(cursor.moveToNext())
+                user = User(name,surname,npila,password)
+            }
+            cursor.close()
+        } finally {
+            db.close()
         }
-        cursor.close()
-        return lisTaLegajos.first()
-    }
-
-    fun getComidaInfo(userId:Number):ArrayList<Comida>{
-
-        val lisTaComidas: ArrayList<Comida> = ArrayList<Comida>();
-        val query = "SELECT * FROM " + TABLE_COMIDA+" where "+ COLUMN_USUARIOID+" = '$userId'"
-        val db= this.readableDatabase
-        val cursor = db.rawQuery(query,null)
-        if(cursor.moveToFirst()){
-            do{
-                ID =  cursor.getInt(cursor.getColumnIndex(COLUMN_IDC))
-                val tipoComida = cursor.getString(cursor.getColumnIndex(COLUMN_TIPO))
-                val comidaPrincipal = cursor.getString(cursor.getColumnIndex(COLUMN_COMIDAPRINCIPAL))
-                val comidaSecundaria = cursor.getString(cursor.getColumnIndex(
-                    COLUMN_COMIDASECUNDARIA))
-                val bebida = cursor.getString(cursor.getColumnIndex(COLUMN_BEBIDA))
-                val postreBoolean = cursor.getString(cursor.getColumnIndex(COLUMN_POSTREBOOLEAN))
-                val postre = cursor.getString(cursor.getColumnIndex(COLUMN_POSTRE))
-                val tentacionBoolean = cursor.getString(cursor.getColumnIndex(COLUMN_TENTACIONBOOOLEAN))
-                val tentacion = cursor.getString(cursor.getColumnIndex(COLUMN_TENTACION))
-                val hambreBoolean = cursor.getString(cursor.getColumnIndex(COLUMN_HAMBREBOOLEAN))
-                val dia = cursor.getString(cursor.getColumnIndex(COLUMN_DIA))
-                val usuarioID = cursor.getString(cursor.getColumnIndex(COLUMN_USUARIOID))
-
-
-
-                lisTaComidas.add(Comida(tipoComida,comidaPrincipal,comidaSecundaria,bebida,postreBoolean,postre,tentacionBoolean,tentacion,hambreBoolean,dia,usuarioID))
-
-            }while(cursor.moveToNext())
-        }
-
-
-        return lisTaComidas
+        return user
     }
 }

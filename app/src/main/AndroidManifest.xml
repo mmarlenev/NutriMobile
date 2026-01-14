@@ -9,16 +9,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Clase15">
-        <activity android:name=".Home" android:exported="false"></activity>
-        <activity android:name=".views.HomeActivity" android:exported="false" />
-        <activity android:name=".Dashboard" android:exported="false" />
+        <activity android:name=".Home" android:exported="false"/>
         <activity android:name=".Intro" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".PlantasActivity" android:exported="false" />
+        <activity android:name=".EtapasActivity" android:exported="false" />
+        <activity android:name=".EntornoActivity" android:exported="false" />
+        <activity android:name=".AlimentacionActivity" android:exported="false" />
+        <activity android:name=".HistorialActivity" android:exported="false" />
     </application>
 
 </manifest>

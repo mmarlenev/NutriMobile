@@ -15,9 +15,6 @@ import edu.istea.model.User
 
 class RegFragment(val contextMain:Context) : Fragment() {
 
-
-
-    // lo mismo para el resgistrar es cuasi un copy paste
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -27,13 +24,6 @@ class RegFragment(val contextMain:Context) : Fragment() {
         val user: EditText = view.findViewById(R.id.r_user)
         val nombrepila: EditText = view.findViewById(R.id.r_nombrepila)
         val surname: EditText = view.findViewById(R.id.r_surname)
-        val dni: EditText = view.findViewById(R.id.r_dni)
-        val sexogroup: RadioGroup=view.findViewById(R.id.r_sexogroup)
-        val sexoEleg:RadioButton=view.findViewById(sexogroup.checkedRadioButtonId)
-        val nacimiento: EditText = view.findViewById(R.id.r_nacimiento)
-        val localidad: EditText = view.findViewById(R.id.r_localidad)
-        val tratgroup: RadioGroup=view.findViewById(R.id.r_tratgroup)
-        val tratEleg: RadioButton=view.findViewById(tratgroup.checkedRadioButtonId)
         val pass: EditText = view.findViewById(R.id.r_pass)
         val register: Button = view.findViewById(R.id.r_saveuser)
 
@@ -43,11 +33,6 @@ class RegFragment(val contextMain:Context) : Fragment() {
             View.OnClickListener {
                 db.saveUser(User(user.text.toString(),
                     surname.text.toString(),
-                    dni.text.toString(),
-                    sexoEleg.text.toString(),
-                    nacimiento.text.toString(),
-                    localidad.text.toString(),
-                    tratEleg.text.toString(),
                     nombrepila.text.toString(),
                     pass.text.toString()))
                 Toast.makeText(view.context,"guardo el usuario",Toast.LENGTH_LONG).show()
@@ -56,8 +41,6 @@ class RegFragment(val contextMain:Context) : Fragment() {
             }
         )
 
-
         return view
     }
-
 }

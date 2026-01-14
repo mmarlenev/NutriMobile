@@ -1,88 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="15dp"
-    tools:context=".Intro">
+    android:padding="16dp">
 
-
-    <LinearLayout
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/btn_historial"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="25dp"
-        android:layout_marginTop="140dp"
-        android:gravity="center|center_horizontal|center_vertical"
-        android:orientation="horizontal">
+        android:text="Historial" />
 
-        <LinearLayout
-            android:id="@+id/botoneshome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingRight="10dp">
+    <Button
+        android:id="@+id/btn_plantas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Plantas" />
 
-            <Button
-                android:id="@+id/btn_cargarcomi"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
-                android:textAlignment="center"
-                android:textSize="18sp"
-                app:icon="@drawable/comi"
-                app:iconSize="90dp" />
+    <Button
+        android:id="@+id/btn_etapas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Etapas" />
 
-            <Button
-                android:id="@+id/btn_verdatos"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
-                android:textSize="18sp"
-                app:icon="@drawable/user"
-                app:iconPadding="0dp"
-                app:iconSize="90dp" />
+    <Button
+        android:id="@+id/btn_entorno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Entorno" />
 
+    <Button
+        android:id="@+id/btn_alimentacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Alimentación" />
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/botoneshome2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/btn_verhisto"
-                android:layout_width="160dp"
-                android:layout_height="160dp"
-                android:textSize="18sp"
-                app:icon="@drawable/hist2"
-                app:iconSize="90dp" />
-
-            <Button
-                android:id="@+id/btn_volvermenu"
-                android:layout_width="match_parent"
-                android:layout_height="162dp"
-                android:textSize="18sp"
-                app:icon="@drawable/back"
-                app:iconSize="90dp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <include
-        android:id="@+id/cargar_comida_layout"
-        layout="@layout/cargacomida_layout"
-        android:visibility="gone" />
-
-    <include
-        android:id="@+id/pag_resumen_layout"
-        layout="@layout/resumen_layout"
-        android:visibility="gone" />
-
-    <include
-        android:id="@+id/usuario_legajo_layout"
-        layout="@layout/datos_layout"
-        android:visibility="gone" />
-
-
-</RelativeLayout>
+</LinearLayout>
