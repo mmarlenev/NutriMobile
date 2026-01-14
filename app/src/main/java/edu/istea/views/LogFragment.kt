@@ -2,6 +2,7 @@ package edu.istea.views
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import edu.istea.model.User
 
 class LogFragment(val contextMain: Context) :Fragment() {
 
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreateView(
 
@@ -31,6 +33,7 @@ class LogFragment(val contextMain: Context) :Fragment() {
         val login:Button = view.findViewById(R.id.l_login)
 
         val db: DBHelper = DBHelper(contextMain)
+        sharedPreferences = contextMain.getSharedPreferences("faso_prefs", Context.MODE_PRIVATE)
 
         login.setOnClickListener(
             View.OnClickListener {
@@ -40,11 +43,14 @@ class LogFragment(val contextMain: Context) :Fragment() {
                         "x",
                         "x",
                         pass.text.toString()))){
-                    // TODO: ir al dashboard de usuarios
+
+                    sharedPreferences.edit().putInt("userId", userId).apply()
+
                     Toast.makeText(view.context,"Bienvenido!", Toast.LENGTH_SHORT).show()
                     var intent = Intent(view.context, Home::class.java)
                     intent.putExtra("userId",userId)
                     startActivity(intent)
+                    activity?.finish()
                 }else{
                     Toast.makeText(view.context,"Usuario no encontrado, REGISTRESE", Toast.LENGTH_LONG).show()
                 }
