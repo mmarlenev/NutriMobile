@@ -24,8 +24,8 @@ class AddEtapaDialogFragment(private val plantas: List<Planta>) : DialogFragment
             val inflater = requireActivity().layoutInflater
             val view = inflater.inflate(R.layout.dialog_add_etapa, null)
 
-            val plantaSpinner = view.findViewById<Spinner>(R.id.spinner_planta)
-            val estadoSpinner = view.findViewById<Spinner>(R.id.spinner_estado)
+            val plantaSpinner = view.findViewById<Spinner>(R.id.spinner_planta_etapa)
+            val estadoSpinner = view.findViewById<Spinner>(R.id.spinner_estado_etapa)
             val fechaDatePicker = view.findViewById<DatePicker>(R.id.dp_fecha_etapa)
 
             // Plantas

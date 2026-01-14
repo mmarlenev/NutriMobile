@@ -21,6 +21,8 @@ class EtapasActivity : AppCompatActivity(), AddEtapaDialogFragment.AddEtapaDialo
         super.onCreate(savedInstanceState)
         setContentView(R.layout.etapas_layout)
 
+        supportActionBar?.title = "Etapas"
+
         dbHelper = DBHelper(this)
 
         val rvEtapas: RecyclerView = findViewById(R.id.rv_etapas)

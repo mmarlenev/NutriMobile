@@ -21,6 +21,8 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
         super.onCreate(savedInstanceState)
         setContentView(R.layout.entorno_layout)
 
+        supportActionBar?.title = "Entorno"
+
         dbHelper = DBHelper(this)
 
         val rvEntorno: RecyclerView = findViewById(R.id.rv_entorno)

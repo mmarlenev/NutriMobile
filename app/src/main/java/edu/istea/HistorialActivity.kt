@@ -16,6 +16,8 @@ class HistorialActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.historial_layout)
 
+        supportActionBar?.title = "Historial"
+
         dbHelper = DBHelper(this)
 
         val rvHistorial: RecyclerView = findViewById(R.id.rv_historial)

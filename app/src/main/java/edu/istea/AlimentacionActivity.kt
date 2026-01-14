@@ -21,6 +21,8 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
         super.onCreate(savedInstanceState)
         setContentView(R.layout.alimentacion_layout)
 
+        supportActionBar?.title = "Alimentación"
+
         dbHelper = DBHelper(this)
 
         val rvAlimentacion: RecyclerView = findViewById(R.id.rv_alimentacion)
