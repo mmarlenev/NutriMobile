@@ -2,25 +2,25 @@ package edu.istea
 
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import edu.istea.adapter.PlantaAdapter
-import edu.istea.dao.DBHelper
 import edu.istea.model.Planta
+import edu.istea.viewmodel.PlantaViewModel
 import edu.istea.views.AddPlantaDialogFragment
 
-class PlantasActivity : AppCompatActivity(), AddPlantaDialogFragment.PlantaDialogListener {
+class PlantasActivity : AppCompatActivity() {
 
     private lateinit var plantaAdapter: PlantaAdapter
-    private lateinit var dbHelper: DBHelper
+    private val plantaViewModel: PlantaViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.plantas_layout)
-
-        dbHelper = DBHelper(this)
 
         val rvPlantas: RecyclerView = findViewById(R.id.rv_plantas)
         plantaAdapter = PlantaAdapter(::handleModify, ::handleDelete)
@@ -33,24 +33,11 @@ class PlantasActivity : AppCompatActivity(), AddPlantaDialogFragment.PlantaDialo
             dialog.show(supportFragmentManager, "AddPlantaDialogFragment")
         }
 
-        loadPlantas()
-    }
+        plantaViewModel.plantas.observe(this, Observer { plantas ->
+            plantaAdapter.submitList(plantas)
+        })
 
-    private fun loadPlantas() {
-        val plantas = dbHelper.getAllPlantas()
-        plantaAdapter.submitList(plantas)
-    }
-
-    override fun onPlantaAdded(planta: Planta) {
-        dbHelper.savePlanta(planta)
-        loadPlantas()
-        Toast.makeText(this, "Planta añadida: ${planta.nombre}", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onPlantaUpdated(planta: Planta) {
-        dbHelper.updatePlanta(planta)
-        loadPlantas()
-        Toast.makeText(this, "Planta actualizada: ${planta.nombre}", Toast.LENGTH_SHORT).show()
+        plantaViewModel.loadPlantas()
     }
 
     private fun handleModify(planta: Planta) {
@@ -59,8 +46,7 @@ class PlantasActivity : AppCompatActivity(), AddPlantaDialogFragment.PlantaDialo
     }
 
     private fun handleDelete(planta: Planta) {
-        dbHelper.deletePlanta(planta.id, planta.nombre)
-        loadPlantas()
+        plantaViewModel.deletePlanta(planta)
         Toast.makeText(this, "Planta eliminada: ${planta.nombre}", Toast.LENGTH_SHORT).show()
     }
 }

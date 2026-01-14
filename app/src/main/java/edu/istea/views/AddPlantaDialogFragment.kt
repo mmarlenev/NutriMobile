@@ -9,16 +9,14 @@ import android.widget.RadioGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.BundleCompat
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
 import edu.istea.R
 import edu.istea.model.Planta
+import edu.istea.viewmodel.PlantaViewModel
 
 class AddPlantaDialogFragment : DialogFragment() {
 
-    interface PlantaDialogListener {
-        fun onPlantaAdded(planta: Planta)
-        fun onPlantaUpdated(planta: Planta)
-    }
-
+    private val plantaViewModel: PlantaViewModel by activityViewModels()
     private var planta: Planta? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,10 +61,10 @@ class AddPlantaDialogFragment : DialogFragment() {
 
                     if (planta == null) {
                         val nuevaPlanta = Planta(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
-                        (activity as? PlantaDialogListener)?.onPlantaAdded(nuevaPlanta)
+                        plantaViewModel.addPlanta(nuevaPlanta)
                     } else {
                         val plantaActualizada = planta!!.copy(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
-                        (activity as? PlantaDialogListener)?.onPlantaUpdated(plantaActualizada)
+                        plantaViewModel.updatePlanta(plantaActualizada)
                     }
                 }
                 .setNegativeButton("Cancelar") { dialog, _ ->
