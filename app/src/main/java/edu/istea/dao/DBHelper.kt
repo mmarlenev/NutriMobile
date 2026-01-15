@@ -161,7 +161,6 @@ class DBHelper(context: Context) :
             Log.e("DBHelper", "Database operation failed", e)
         } finally {
             db.endTransaction()
-            db.close()
         }
         return result
     }
@@ -257,15 +256,14 @@ class DBHelper(context: Context) :
         val cursor = db.rawQuery("SELECT * FROM $TABLE_HISTORIAL ORDER BY $COLUMN_HISTORIAL_ID DESC", null)
         if (cursor.moveToFirst()) {
             do {
-                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_HISTORIAL_ID))
-                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_HISTORIAL_FECHA))
-                val tipo = cursor.getString(cursor.getColumnIndex(COLUMN_HISTORIAL_TIPO_EVENTO))
-                val desc = cursor.getString(cursor.getColumnIndex(COLUMN_HISTORIAL_DESCRIPCION))
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_ID))
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_FECHA))
+                val tipo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_TIPO_EVENTO))
+                val desc = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_DESCRIPCION))
                 eventos.add(HistorialEvento(id, fecha, tipo, desc))
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
         return eventos
     }
     
@@ -275,15 +273,14 @@ class DBHelper(context: Context) :
         val cursor = db.rawQuery("SELECT * FROM $TABLE_PLANTAS ORDER BY $COLUMN_PLANTA_ID DESC", null)
         if (cursor.moveToFirst()) {
             do {
-                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_PLANTA_ID))
-                val nombre = cursor.getString(cursor.getColumnIndex(COLUMN_PLANTA_NOMBRE))
-                val genetica = cursor.getString(cursor.getColumnIndex(COLUMN_PLANTA_GENETICA))
-                val fechaOrigen = cursor.getString(cursor.getColumnIndex(COLUMN_PLANTA_FECHA_ORIGEN))
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_ID))
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_NOMBRE))
+                val genetica = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_GENETICA))
+                val fechaOrigen = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_FECHA_ORIGEN))
                 plantas.add(Planta(id, nombre, genetica, fechaOrigen))
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
         return plantas
     }
 
@@ -293,16 +290,15 @@ class DBHelper(context: Context) :
         val cursor = db.rawQuery("SELECT * FROM $TABLE_ETAPAS ORDER BY $COLUMN_ETAPA_ID DESC", null)
         if (cursor.moveToFirst()) {
             do {
-                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_ETAPA_ID))
-                val plantaId = cursor.getInt(cursor.getColumnIndex(COLUMN_ETAPA_PLANTA_ID))
-                val plantaNombre = cursor.getString(cursor.getColumnIndex(COLUMN_ETAPA_PLANTA_NOMBRE))
-                val estado = cursor.getString(cursor.getColumnIndex(COLUMN_ETAPA_ESTADO))
-                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_ETAPA_FECHA))
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_ID))
+                val plantaId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_PLANTA_NOMBRE))
+                val estado = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_ESTADO))
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_FECHA))
                 etapas.add(Etapa(id, plantaId, plantaNombre, estado, fecha))
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
         return etapas
     }
 
@@ -312,18 +308,17 @@ class DBHelper(context: Context) :
         val cursor = db.rawQuery("SELECT * FROM $TABLE_ENTORNO ORDER BY $COLUMN_ENTORNO_ID DESC", null)
         if (cursor.moveToFirst()) {
             do {
-                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_ENTORNO_ID))
-                val plantaId = cursor.getInt(cursor.getColumnIndex(COLUMN_ENTORNO_PLANTA_ID))
-                val plantaNombre = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_PLANTA_NOMBRE))
-                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_FECHA))
-                val tipo = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_TIPO))
-                val valor = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_VALOR))
-                val unidad = cursor.getString(cursor.getColumnIndex(COLUMN_ENTORNO_UNIDAD))
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_ID))
+                val plantaId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_NOMBRE))
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_FECHA))
+                val tipo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_TIPO))
+                val valor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_VALOR))
+                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_UNIDAD))
                 entornos.add(Entorno(id, plantaId, plantaNombre, fecha, tipo, valor, unidad))
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
         return entornos
     }
 
@@ -333,18 +328,17 @@ class DBHelper(context: Context) :
         val cursor = db.rawQuery("SELECT * FROM $TABLE_ALIMENTACION ORDER BY $COLUMN_ALIMENTACION_ID DESC", null)
         if (cursor.moveToFirst()) {
             do {
-                val id = cursor.getInt(cursor.getColumnIndex(COLUMN_ALIMENTACION_ID))
-                val plantaId = cursor.getInt(cursor.getColumnIndex(COLUMN_ALIMENTACION_PLANTA_ID))
-                val plantaNombre = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_PLANTA_NOMBRE))
-                val fecha = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_FECHA))
-                val insumo = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_INSUMO))
-                val cantidad = cursor.getFloat(cursor.getColumnIndex(COLUMN_ALIMENTACION_CANTIDAD))
-                val unidad = cursor.getString(cursor.getColumnIndex(COLUMN_ALIMENTACION_UNIDAD))
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_ID))
+                val plantaId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_NOMBRE))
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_FECHA))
+                val insumo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_INSUMO))
+                val cantidad = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_CANTIDAD))
+                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_UNIDAD))
                 alimentaciones.add(Alimentacion(id, plantaId, plantaNombre, fecha, insumo, cantidad, unidad))
             } while (cursor.moveToNext())
         }
         cursor.close()
-        db.close()
         return alimentaciones
     }
 
@@ -361,50 +355,38 @@ class DBHelper(context: Context) :
 
     fun validateUser(user: User): Boolean {
         val db = this.readableDatabase
-        return try {
-            val query = "SELECT * FROM $TABLE_USER WHERE $COLUMN_NAME = ? AND $COLUMN_PASS = ?"
-            val cursor = db.rawQuery(query, arrayOf(user.name, user.pass))
-            val userExists = cursor.count > 0
-            cursor.close()
-            userExists
-        } finally {
-            db.close()
-        }
+        val query = "SELECT * FROM $TABLE_USER WHERE $COLUMN_NAME = ? AND $COLUMN_PASS = ?"
+        val cursor = db.rawQuery(query, arrayOf(user.name, user.pass))
+        val userExists = cursor.count > 0
+        cursor.close()
+        return userExists
     }
 
     fun userActual(name: String, password: String):Int {
         val db = this.readableDatabase
         var idUser = 0
-        try {
-            val query= "SELECT $COLUMN_ID FROM $TABLE_USER WHERE $COLUMN_NAME = ? AND $COLUMN_PASS = ?"
-            val cursor = db.rawQuery(query, arrayOf(name, password))
-            if(cursor.moveToFirst()){
-                idUser =  cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID))
-            }
-            cursor.close()
-        } finally {
-            db.close()
+        val query= "SELECT $COLUMN_ID FROM $TABLE_USER WHERE $COLUMN_NAME = ? AND $COLUMN_PASS = ?"
+        val cursor = db.rawQuery(query, arrayOf(name, password))
+        if(cursor.moveToFirst()){
+            idUser =  cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID))
         }
+        cursor.close()
         return idUser
     }
 
     fun getUserInfo(userId: Number): User? {
         val db = this.readableDatabase
         var user: User? = null
-        try {
-            val cursor = db.query(TABLE_USER, arrayOf(COLUMN_NAME, COLUMN_SURNAME, COLUMN_NPILA, COLUMN_PASS),
-                "$COLUMN_ID = ?", arrayOf(userId.toString()), null, null, null)
-            if(cursor.moveToFirst()){
-                val name =  cursor.getString(cursor.getColumnIndex(COLUMN_NAME))
-                val surname =  cursor.getString(cursor.getColumnIndex(COLUMN_SURNAME))
-                val npila =  cursor.getString(cursor.getColumnIndex(COLUMN_NPILA))
-                val password =  cursor.getString(cursor.getColumnIndex(COLUMN_PASS))
-                user = User(name,surname,npila,password)
-            }
-            cursor.close()
-        } finally {
-            db.close()
+        val cursor = db.query(TABLE_USER, arrayOf(COLUMN_NAME, COLUMN_SURNAME, COLUMN_NPILA, COLUMN_PASS),
+            "$COLUMN_ID = ?", arrayOf(userId.toString()), null, null, null)
+        if(cursor.moveToFirst()){
+            val name =  cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME))
+            val surname =  cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SURNAME))
+            val npila =  cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NPILA))
+            val password =  cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASS))
+            user = User(name,surname,npila,password)
         }
+        cursor.close()
         return user
     }
 }

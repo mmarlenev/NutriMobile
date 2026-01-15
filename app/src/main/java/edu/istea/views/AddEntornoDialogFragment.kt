@@ -27,17 +27,23 @@ class AddEntornoDialogFragment(private val plantas: List<Planta>) : DialogFragme
         TipoMedicion("Temperatura ambiente", "°C")
     )
 
+    private lateinit var plantaSpinner: Spinner
+    private lateinit var fechaPicker: DatePicker
+    private lateinit var tipoSpinner: Spinner
+    private lateinit var valorEditText: EditText
+    private lateinit var unidadTextView: TextView
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
             val builder = AlertDialog.Builder(it)
             val inflater = requireActivity().layoutInflater
             val view = inflater.inflate(R.layout.dialog_add_entorno, null)
 
-            val plantaSpinner = view.findViewById<Spinner>(R.id.spinner_planta_entorno)
-            val fechaPicker = view.findViewById<DatePicker>(R.id.dp_fecha_entorno)
-            val tipoSpinner = view.findViewById<Spinner>(R.id.spinner_tipo_medicion)
-            val valorEditText = view.findViewById<EditText>(R.id.et_valor_medicion)
-            val unidadTextView = view.findViewById<TextView>(R.id.tv_unidad_medicion)
+            plantaSpinner = view.findViewById(R.id.spinner_planta_entorno)
+            fechaPicker = view.findViewById(R.id.dp_fecha_entorno)
+            tipoSpinner = view.findViewById(R.id.spinner_tipo_medicion)
+            valorEditText = view.findViewById(R.id.et_valor_medicion)
+            unidadTextView = view.findViewById(R.id.tv_unidad_medicion)
 
             // Configurar Spinner de Plantas
             val plantaNombres = plantas.map { it.nombre }
@@ -59,31 +65,57 @@ class AddEntornoDialogFragment(private val plantas: List<Planta>) : DialogFragme
             }
 
             builder.setView(view)
-                .setPositiveButton("Añadir") { _, _ ->
-                    val selectedPlanta = plantas[plantaSpinner.selectedItemPosition]
-                    val tipo = tiposMedicion[tipoSpinner.selectedItemPosition]
-                    val valor = valorEditText.text.toString()
-                    val day = fechaPicker.dayOfMonth
-                    val month = fechaPicker.month
-                    val year = fechaPicker.year
-                    val calendar = Calendar.getInstance()
-                    calendar.set(year, month, day)
-                    val fecha = "${day}/${month + 1}/${year}"
-
-                    val nuevoEntorno = Entorno(
-                        plantaId = selectedPlanta.id,
-                        plantaNombre = selectedPlanta.nombre,
-                        fecha = fecha,
-                        tipo = tipo.nombre,
-                        valor = valor,
-                        unidad = tipo.unidad
-                    )
-                    (activity as? AddEntornoDialogListener)?.onEntornoAdded(nuevoEntorno)
-                }
-                .setNegativeButton("Cancelar") { dialog, _ ->
+                .setPositiveButton("Añadir", null) // Will be overridden
+                .setNegativeButton("Finalizar") { dialog, _ ->
                     dialog.cancel()
                 }
             builder.create()
         } ?: throw IllegalStateException("Activity cannot be null")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val dialog = dialog as? AlertDialog
+        dialog?.let {
+            val positiveButton = it.getButton(Dialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener { 
+                val selectedPlanta = plantas[plantaSpinner.selectedItemPosition]
+                val tipo = tiposMedicion[tipoSpinner.selectedItemPosition]
+                val valor = valorEditText.text.toString()
+
+                if (valor.isBlank()) {
+                    Toast.makeText(requireContext(), "El valor no puede estar vacío", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                val day = fechaPicker.dayOfMonth
+                val month = fechaPicker.month
+                val year = fechaPicker.year
+                val calendar = Calendar.getInstance()
+                calendar.set(year, month, day)
+                val fecha = "${day}/${month + 1}/${year}"
+
+                val nuevoEntorno = Entorno(
+                    plantaId = selectedPlanta.id,
+                    plantaNombre = selectedPlanta.nombre,
+                    fecha = fecha,
+                    tipo = tipo.nombre,
+                    valor = valor,
+                    unidad = tipo.unidad
+                )
+                (activity as? AddEntornoDialogListener)?.onEntornoAdded(nuevoEntorno)
+
+                // Clear the value and set focus
+                valorEditText.text.clear()
+                tipoSpinner.setSelection(0) // Reset to first item
+                tipoSpinner.requestFocus()
+
+                // Disable plant and date pickers after first entry
+                plantaSpinner.isEnabled = false
+                fechaPicker.isEnabled = false
+
+                Toast.makeText(requireContext(), "Medición añadida. Puede añadir otra.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
