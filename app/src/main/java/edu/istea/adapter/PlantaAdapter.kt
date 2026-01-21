@@ -4,7 +4,7 @@ import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -34,8 +34,8 @@ class PlantaAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
         private val nombre: TextView = itemView.findViewById(R.id.tv_planta_nombre)
         private val info: TextView = itemView.findViewById(R.id.tv_planta_info)
-        private val modifyButton: Button = itemView.findViewById(R.id.btn_modificar_planta)
-        private val deleteButton: Button = itemView.findViewById(R.id.btn_eliminar_planta)
+        private val modifyButton: ImageButton = itemView.findViewById(R.id.btn_modificar_planta)
+        private val deleteButton: ImageButton = itemView.findViewById(R.id.btn_eliminar_planta)
         private lateinit var currentPlanta: Planta
 
         init {
