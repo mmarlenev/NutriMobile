@@ -26,18 +26,33 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
         dbHelper = DBHelper(this)
 
         val rvEntorno: RecyclerView = findViewById(R.id.rv_entorno)
-        entornoAdapter = EntornoAdapter()
+        entornoAdapter = EntornoAdapter(
+            onModifyClick = ::handleModify,
+            onDeleteClick = ::handleDelete
+        )
         rvEntorno.adapter = entornoAdapter
         rvEntorno.layoutManager = LinearLayoutManager(this)
 
         val fabAddEntorno: FloatingActionButton = findViewById(R.id.fab_add_entorno)
         fabAddEntorno.setOnClickListener {
             val plantas = dbHelper.getAllPlantas()
-            val dialog = AddEntornoDialogFragment(plantas)
+            val dialog = AddEntornoDialogFragment.newInstance(plantas)
             dialog.show(supportFragmentManager, "AddEntornoDialogFragment")
         }
         
         loadEntornos()
+    }
+
+    private fun handleModify(entorno: Entorno) {
+        val plantas = dbHelper.getAllPlantas()
+        val dialog = AddEntornoDialogFragment.newInstance(plantas, entorno)
+        dialog.show(supportFragmentManager, "ModifyEntornoDialogFragment")
+    }
+
+    private fun handleDelete(entorno: Entorno) {
+        dbHelper.deleteEntorno(entorno.id)
+        loadEntornos()
+        Toast.makeText(this, "Medición eliminada", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadEntornos() {
@@ -49,5 +64,11 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
         dbHelper.saveEntorno(entorno)
         loadEntornos()
         Toast.makeText(this, "Medición añadida para ${entorno.plantaNombre}", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onEntornoUpdated(entorno: Entorno) {
+        dbHelper.updateEntorno(entorno)
+        loadEntornos()
+        Toast.makeText(this, "Medición actualizada", Toast.LENGTH_SHORT).show()
     }
 }

@@ -12,10 +12,11 @@ import edu.istea.model.Planta
 import edu.istea.model.TipoMedicion
 import java.util.Calendar
 
-class AddEntornoDialogFragment(private val plantas: List<Planta>) : DialogFragment() {
+class AddEntornoDialogFragment : DialogFragment() {
 
     interface AddEntornoDialogListener {
         fun onEntornoAdded(entorno: Entorno)
+        fun onEntornoUpdated(entorno: Entorno)
     }
 
     private val tiposMedicion = listOf(
@@ -32,6 +33,17 @@ class AddEntornoDialogFragment(private val plantas: List<Planta>) : DialogFragme
     private lateinit var tipoSpinner: Spinner
     private lateinit var valorEditText: EditText
     private lateinit var unidadTextView: TextView
+
+    private var entornoToEdit: Entorno? = null
+    private var plantas: List<Planta> = emptyList()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let {
+            entornoToEdit = it.getParcelable(ARG_ENTORNO)
+            plantas = it.getParcelableArrayList(ARG_PLANTAS) ?: emptyList()
+        }
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return activity?.let {
@@ -64,9 +76,26 @@ class AddEntornoDialogFragment(private val plantas: List<Planta>) : DialogFragme
                 override fun onNothingSelected(parent: AdapterView<*>?) {}
             }
 
+            entornoToEdit?.let { entorno ->
+                val plantaPosition = plantas.indexOfFirst { it.id == entorno.plantaId }
+                if (plantaPosition != -1) {
+                    plantaSpinner.setSelection(plantaPosition)
+                }
+                val tipoPosition = tiposMedicion.indexOfFirst { it.nombre == entorno.tipo }
+                if (tipoPosition != -1) {
+                    tipoSpinner.setSelection(tipoPosition)
+                }
+                valorEditText.setText(entorno.valor)
+                val dateParts = entorno.fecha.split("/")
+                if (dateParts.size == 3) {
+                    fechaPicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
+                }
+            }
+
+            val buttonText = if (entornoToEdit == null) "Añadir" else "Actualizar"
             builder.setView(view)
-                .setPositiveButton("Añadir", null) // Will be overridden
-                .setNegativeButton("Finalizar") { dialog, _ ->
+                .setPositiveButton(buttonText, null) // Will be overridden
+                .setNegativeButton("Cancelar") { dialog, _ ->
                     dialog.cancel()
                 }
             builder.create()
@@ -95,27 +124,44 @@ class AddEntornoDialogFragment(private val plantas: List<Planta>) : DialogFragme
                 calendar.set(year, month, day)
                 val fecha = "${day}/${month + 1}/${year}"
 
-                val nuevoEntorno = Entorno(
-                    plantaId = selectedPlanta.id,
-                    plantaNombre = selectedPlanta.nombre,
-                    fecha = fecha,
-                    tipo = tipo.nombre,
-                    valor = valor,
-                    unidad = tipo.unidad
-                )
-                (activity as? AddEntornoDialogListener)?.onEntornoAdded(nuevoEntorno)
-
-                // Clear the value and set focus
-                valorEditText.text.clear()
-                tipoSpinner.setSelection(0) // Reset to first item
-                tipoSpinner.requestFocus()
-
-                // Disable plant and date pickers after first entry
-                plantaSpinner.isEnabled = false
-                fechaPicker.isEnabled = false
-
-                Toast.makeText(requireContext(), "Medición añadida. Puede añadir otra.", Toast.LENGTH_SHORT).show()
+                if (entornoToEdit == null) {
+                    val nuevoEntorno = Entorno(
+                        plantaId = selectedPlanta.id,
+                        plantaNombre = selectedPlanta.nombre,
+                        fecha = fecha,
+                        tipo = tipo.nombre,
+                        valor = valor,
+                        unidad = tipo.unidad
+                    )
+                    (activity as? AddEntornoDialogListener)?.onEntornoAdded(nuevoEntorno)
+                    dismiss()
+                } else {
+                    val entornoActualizado = entornoToEdit!!.copy(
+                        plantaId = selectedPlanta.id,
+                        plantaNombre = selectedPlanta.nombre,
+                        fecha = fecha,
+                        tipo = tipo.nombre,
+                        valor = valor,
+                        unidad = tipo.unidad
+                    )
+                    (activity as? AddEntornoDialogListener)?.onEntornoUpdated(entornoActualizado)
+                    dismiss()
+                }
             }
+        }
+    }
+
+    companion object {
+        private const val ARG_ENTORNO = "entorno_to_edit"
+        private const val ARG_PLANTAS = "plantas_list"
+
+        fun newInstance(plantas: List<Planta>, entorno: Entorno? = null): AddEntornoDialogFragment {
+            val fragment = AddEntornoDialogFragment()
+            val args = Bundle()
+            args.putParcelable(ARG_ENTORNO, entorno)
+            args.putParcelableArrayList(ARG_PLANTAS, ArrayList(plantas))
+            fragment.arguments = args
+            return fragment
         }
     }
 }

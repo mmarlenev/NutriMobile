@@ -234,6 +234,31 @@ class DBHelper(context: Context) :
         }
     }
 
+    fun updateEntorno(entorno: Entorno) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_ENTORNO_PLANTA_ID, entorno.plantaId)
+            values.put(COLUMN_ENTORNO_PLANTA_NOMBRE, entorno.plantaNombre)
+            values.put(COLUMN_ENTORNO_FECHA, entorno.fecha)
+            values.put(COLUMN_ENTORNO_TIPO, entorno.tipo)
+            values.put(COLUMN_ENTORNO_VALOR, entorno.valor)
+            values.put(COLUMN_ENTORNO_UNIDAD, entorno.unidad)
+            val updatedRows = db.update(TABLE_ENTORNO, values, "$COLUMN_ENTORNO_ID = ?", arrayOf(entorno.id.toString()))
+            if (updatedRows > 0) {
+                saveHistorialEvento(db, "Entorno Actualizado", "Se actualizó una medición de entorno para '${entorno.plantaNombre}'.")
+            }
+        }
+    }
+
+    fun deleteEntorno(entornoId: Int) {
+        performDbOperation { db ->
+            val deletedRows = db.delete(TABLE_ENTORNO, "$COLUMN_ENTORNO_ID = ?", arrayOf(entornoId.toString()))
+            if (deletedRows > 0) {
+                saveHistorialEvento(db, "Entorno Eliminado", "Se eliminó una medición de entorno.")
+            }
+        }
+    }
+
     fun saveAlimentacion(alimentacion: Alimentacion) {
         performDbOperation { db ->
             val values = ContentValues()
