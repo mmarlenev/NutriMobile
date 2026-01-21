@@ -3,63 +3,100 @@ package edu.istea.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import edu.istea.R
+import edu.istea.model.Entorno
 
-// New data class to represent the grouped item
-data class EntornoAgrupado(
-    val plantaId: Int,
-    val plantaNombre: String,
-    val fecha: String
-)
+// --- ViewModels for the list ---
+sealed class EntornoListItem {
+    abstract val id: String
 
-class EntornoAdapter(
-    private val onItemClick: (EntornoAgrupado) -> Unit // Click listener for the whole card
-) : ListAdapter<EntornoAgrupado, EntornoAdapter.EntornoViewHolder>(EntornoAgrupadoDiffCallback()) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EntornoViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.entorno_list_item, parent, false)
-        return EntornoViewHolder(view, onItemClick)
+    data class PlantaHeader(val planta: EntornoPlanta, var isExpanded: Boolean = false) : EntornoListItem() {
+        override val id: String get() = planta.plantaId.toString()
     }
 
-    override fun onBindViewHolder(holder: EntornoViewHolder, position: Int) {
-        val entornoAgrupado = getItem(position)
-        holder.bind(entornoAgrupado)
-    }
-
-    class EntornoViewHolder(
-        itemView: View,
-        private val onItemClick: (EntornoAgrupado) -> Unit
-    ) : RecyclerView.ViewHolder(itemView) {
-        private val plantaNombreTextView: TextView = itemView.findViewById(R.id.tv_planta_nombre_group)
-        private val fechaTextView: TextView = itemView.findViewById(R.id.tv_fecha_group)
-        private lateinit var currentEntornoAgrupado: EntornoAgrupado
-
-        init {
-            // Set the click listener on the whole card view
-            itemView.setOnClickListener {
-                onItemClick(currentEntornoAgrupado)
-            }
-        }
-
-        fun bind(entornoAgrupado: EntornoAgrupado) {
-            currentEntornoAgrupado = entornoAgrupado
-            plantaNombreTextView.text = entornoAgrupado.plantaNombre
-            fechaTextView.text = entornoAgrupado.fecha
-        }
+    data class FechaItem(val fecha: EntornoFecha) : EntornoListItem() {
+        override val id: String get() = "${fecha.plantaId}-${fecha.fecha}"
     }
 }
 
-class EntornoAgrupadoDiffCallback : DiffUtil.ItemCallback<EntornoAgrupado>() {
-    override fun areItemsTheSame(oldItem: EntornoAgrupado, newItem: EntornoAgrupado): Boolean {
-        // A unique group is defined by the plant and the date
-        return oldItem.plantaId == newItem.plantaId && oldItem.fecha == newItem.fecha
+// --- Data classes for the adapter ---
+data class EntornoPlanta(val plantaId: Int, val plantaNombre: String, val ultimaFecha: String, val fechas: List<EntornoFecha>)
+data class EntornoFecha(val plantaId: Int, val plantaNombre: String, val fecha: String)
+
+
+class EntornoAdapter(
+    private val onHeaderClick: (EntornoListItem.PlantaHeader) -> Unit,
+    private val onFechaClick: (EntornoFecha) -> Unit
+) : ListAdapter<EntornoListItem, RecyclerView.ViewHolder>(EntornoDiffCallback()) {
+
+    companion object {
+        private const val TYPE_PLANTA = 0
+        private const val TYPE_FECHA = 1
     }
 
-    override fun areContentsTheSame(oldItem: EntornoAgrupado, newItem: EntornoAgrupado): Boolean {
-        return oldItem == newItem
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is EntornoListItem.PlantaHeader -> TYPE_PLANTA
+            is EntornoListItem.FechaItem -> TYPE_FECHA
+            null -> throw IllegalStateException("Null item at position $position")
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == TYPE_PLANTA) {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.entorno_list_item, parent, false)
+            PlantaViewHolder(view, onHeaderClick)
+        } else {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.entorno_fecha_item, parent, false)
+            FechaViewHolder(view, onFechaClick)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val item = getItem(position)) {
+            is EntornoListItem.PlantaHeader -> (holder as PlantaViewHolder).bind(item)
+            is EntornoListItem.FechaItem -> (holder as FechaViewHolder).bind(item.fecha)
+        }
+    }
+
+    // --- ViewHolders ---
+
+    class PlantaViewHolder(itemView: View, private val onHeaderClick: (EntornoListItem.PlantaHeader) -> Unit) : RecyclerView.ViewHolder(itemView) {
+        private val nombre: TextView = itemView.findViewById(R.id.tv_planta_nombre_group)
+        private val fecha: TextView = itemView.findViewById(R.id.tv_fecha_group)
+        private val arrow: ImageView = itemView.findViewById(R.id.iv_expand_arrow)
+
+        fun bind(header: EntornoListItem.PlantaHeader) {
+            nombre.text = header.planta.plantaNombre
+            fecha.text = "Última medición: ${header.planta.ultimaFecha}"
+            arrow.rotation = if (header.isExpanded) 180f else 0f
+            itemView.setOnClickListener { onHeaderClick(header) }
+        }
+    }
+
+    class FechaViewHolder(itemView: View, private val onFechaClick: (EntornoFecha) -> Unit) : RecyclerView.ViewHolder(itemView) {
+        private val fecha: TextView = itemView.findViewById(R.id.tv_fecha)
+
+        fun bind(fechaItem: EntornoFecha) {
+            fecha.text = fechaItem.fecha
+            itemView.setOnClickListener { onFechaClick(fechaItem) }
+        }
+    }
+
+    // --- DiffUtil Callback ---
+
+    class EntornoDiffCallback : DiffUtil.ItemCallback<EntornoListItem>() {
+        override fun areItemsTheSame(oldItem: EntornoListItem, newItem: EntornoListItem): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: EntornoListItem, newItem: EntornoListItem): Boolean {
+            return oldItem == newItem
+        }
     }
 }

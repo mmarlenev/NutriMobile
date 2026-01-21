@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import edu.istea.adapter.EntornoAdapter
-import edu.istea.adapter.EntornoAgrupado
+import edu.istea.adapter.EntornoFecha
+import edu.istea.adapter.EntornoListItem
+import edu.istea.adapter.EntornoPlanta
 import edu.istea.dao.DBHelper
 import edu.istea.model.Entorno
 import edu.istea.views.AddEntornoDialogFragment
@@ -17,6 +19,7 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
 
     private lateinit var entornoAdapter: EntornoAdapter
     private lateinit var dbHelper: DBHelper
+    private val listItems = mutableListOf<EntornoListItem>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +30,10 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
         dbHelper = DBHelper(this)
 
         val rvEntorno: RecyclerView = findViewById(R.id.rv_entorno)
-        entornoAdapter = EntornoAdapter(::handleItemClick)
+        entornoAdapter = EntornoAdapter(
+            onHeaderClick = ::handleHeaderClick,
+            onFechaClick = ::handleFechaClick
+        )
         rvEntorno.adapter = entornoAdapter
         rvEntorno.layoutManager = LinearLayoutManager(this)
 
@@ -41,24 +47,50 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
         loadEntornos()
     }
 
-    private fun handleItemClick(entornoAgrupado: EntornoAgrupado) {
+    private fun handleHeaderClick(header: EntornoListItem.PlantaHeader) {
+        header.isExpanded = !header.isExpanded
+        val currentList = entornoAdapter.currentList.toMutableList()
+        val position = currentList.indexOf(header)
+
+        if (header.isExpanded) {
+            val fechaItems = header.planta.fechas.map { EntornoListItem.FechaItem(it) }
+            currentList.addAll(position + 1, fechaItems)
+        } else {
+            val itemsToRemove = currentList.subList(position + 1, currentList.size)
+                .takeWhile { it is EntornoListItem.FechaItem && it.fecha.plantaId == header.planta.plantaId }
+            currentList.removeAll(itemsToRemove)
+        }
+        entornoAdapter.submitList(currentList)
+    }
+
+    private fun handleFechaClick(fecha: EntornoFecha) {
         val intent = Intent(this, EntornoDetalleActivity::class.java).apply {
-            putExtra(EntornoDetalleActivity.EXTRA_PLANTA_ID, entornoAgrupado.plantaId)
-            putExtra(EntornoDetalleActivity.EXTRA_FECHA, entornoAgrupado.fecha)
-            putExtra(EntornoDetalleActivity.EXTRA_PLANTA_NOMBRE, entornoAgrupado.plantaNombre)
+            putExtra(EntornoDetalleActivity.EXTRA_PLANTA_ID, fecha.plantaId)
+            putExtra(EntornoDetalleActivity.EXTRA_FECHA, fecha.fecha)
+            putExtra(EntornoDetalleActivity.EXTRA_PLANTA_NOMBRE, fecha.plantaNombre)
         }
         startActivity(intent)
     }
 
     private fun loadEntornos() {
         val entornos = dbHelper.getAllEntornos()
-        val entornosAgrupados = entornos.groupBy { it.plantaId to it.fecha }
-            .map { (key, group) ->
-                val (plantaId, fecha) = key
-                val plantaNombre = group.first().plantaNombre
-                EntornoAgrupado(plantaId, plantaNombre, fecha)
-            }.sortedByDescending { it.fecha } // Sort by date descending
-        entornoAdapter.submitList(entornosAgrupados)
+        val plantasConEntornos = entornos.groupBy { it.plantaId }
+            .map { (plantaId, mediciones) ->
+                val plantaNombre = mediciones.first().plantaNombre
+                val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
+                val ultimaFecha = fechas.firstOrNull() ?: "N/A"
+                val fechasItems = fechas.map { EntornoFecha(plantaId, plantaNombre, it) }
+                EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems)
+            }
+        
+        listItems.clear()
+        listItems.addAll(plantasConEntornos.map { EntornoListItem.PlantaHeader(it) })
+        entornoAdapter.submitList(listItems)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadEntornos() // Reload data when returning to the activity
     }
 
     override fun onEntornoAdded(entorno: Entorno) {
