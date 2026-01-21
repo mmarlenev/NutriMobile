@@ -1,15 +1,18 @@
 package edu.istea.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import edu.istea.R
-import edu.istea.model.Entorno
+import edu.istea.logic.AlertState
+import edu.istea.logic.AlertStatus
 
 // --- ViewModels for the list ---
 sealed class EntornoListItem {
@@ -25,7 +28,7 @@ sealed class EntornoListItem {
 }
 
 // --- Data classes for the adapter ---
-data class EntornoPlanta(val plantaId: Int, val plantaNombre: String, val ultimaFecha: String, val fechas: List<EntornoFecha>)
+data class EntornoPlanta(val plantaId: Int, val plantaNombre: String, val ultimaFecha: String, val fechas: List<EntornoFecha>, val alertStatus: AlertStatus)
 data class EntornoFecha(val plantaId: Int, val plantaNombre: String, val fecha: String)
 
 
@@ -69,12 +72,21 @@ class EntornoAdapter(
     class PlantaViewHolder(itemView: View, private val onHeaderClick: (EntornoListItem.PlantaHeader) -> Unit) : RecyclerView.ViewHolder(itemView) {
         private val nombre: TextView = itemView.findViewById(R.id.tv_planta_nombre_group)
         private val fecha: TextView = itemView.findViewById(R.id.tv_fecha_group)
+        private val alertStatus: TextView = itemView.findViewById(R.id.tv_alert_status)
         private val arrow: ImageView = itemView.findViewById(R.id.iv_expand_arrow)
 
         fun bind(header: EntornoListItem.PlantaHeader) {
             nombre.text = header.planta.plantaNombre
             fecha.text = "Última medición: ${header.planta.ultimaFecha}"
             arrow.rotation = if (header.isExpanded) 180f else 0f
+
+            alertStatus.text = header.planta.alertStatus.message
+            val color = when (header.planta.alertStatus.state) {
+                AlertState.NORMAL -> ContextCompat.getColor(itemView.context, R.color.primary) // Green
+                AlertState.ALERTA -> Color.RED
+            }
+            alertStatus.setTextColor(color)
+
             itemView.setOnClickListener { onHeaderClick(header) }
         }
     }

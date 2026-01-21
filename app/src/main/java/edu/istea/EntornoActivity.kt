@@ -12,6 +12,7 @@ import edu.istea.adapter.EntornoFecha
 import edu.istea.adapter.EntornoListItem
 import edu.istea.adapter.EntornoPlanta
 import edu.istea.dao.DBHelper
+import edu.istea.logic.AlertLogic
 import edu.istea.model.Entorno
 import edu.istea.views.AddEntornoDialogFragment
 
@@ -19,7 +20,7 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
 
     private lateinit var entornoAdapter: EntornoAdapter
     private lateinit var dbHelper: DBHelper
-    private val listItems = mutableListOf<EntornoListItem>()
+    private val plantHeaders = mutableListOf<EntornoListItem.PlantaHeader>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,24 +44,18 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
             val dialog = AddEntornoDialogFragment.newInstance(plantas)
             dialog.show(supportFragmentManager, "AddEntornoDialogFragment")
         }
+    }
 
+    override fun onResume() {
+        super.onResume()
         loadEntornos()
     }
 
     private fun handleHeaderClick(header: EntornoListItem.PlantaHeader) {
-        header.isExpanded = !header.isExpanded
-        val currentList = entornoAdapter.currentList.toMutableList()
-        val position = currentList.indexOf(header)
-
-        if (header.isExpanded) {
-            val fechaItems = header.planta.fechas.map { EntornoListItem.FechaItem(it) }
-            currentList.addAll(position + 1, fechaItems)
-        } else {
-            val itemsToRemove = currentList.subList(position + 1, currentList.size)
-                .takeWhile { it is EntornoListItem.FechaItem && it.fecha.plantaId == header.planta.plantaId }
-            currentList.removeAll(itemsToRemove)
+        plantHeaders.find { it.planta.plantaId == header.planta.plantaId }?.let {
+            it.isExpanded = !it.isExpanded
         }
-        entornoAdapter.submitList(currentList)
+        updateRecyclerView()
     }
 
     private fun handleFechaClick(fecha: EntornoFecha) {
@@ -73,24 +68,39 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
     }
 
     private fun loadEntornos() {
-        val entornos = dbHelper.getAllEntornos()
-        val plantasConEntornos = entornos.groupBy { it.plantaId }
+        val currentExpandedIds = plantHeaders.filter { it.isExpanded }.map { it.planta.plantaId }.toSet()
+
+        val allEntornos = dbHelper.getAllEntornos()
+        val plantasConEntornos = allEntornos.groupBy { it.plantaId }
             .map { (plantaId, mediciones) ->
                 val plantaNombre = mediciones.first().plantaNombre
                 val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
                 val ultimaFecha = fechas.firstOrNull() ?: "N/A"
+                
+                val latestMeasurements = mediciones.filter { it.fecha == ultimaFecha }
+                val alertStatus = AlertLogic.getAlertStatus(latestMeasurements)
+
                 val fechasItems = fechas.map { EntornoFecha(plantaId, plantaNombre, it) }
-                EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems)
+                EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems, alertStatus)
             }
         
-        listItems.clear()
-        listItems.addAll(plantasConEntornos.map { EntornoListItem.PlantaHeader(it) })
-        entornoAdapter.submitList(listItems)
+        plantHeaders.clear()
+        plantHeaders.addAll(plantasConEntornos.map { planta ->
+            EntornoListItem.PlantaHeader(planta, isExpanded = planta.plantaId in currentExpandedIds)
+        })
+
+        updateRecyclerView()
     }
 
-    override fun onResume() {
-        super.onResume()
-        loadEntornos() // Reload data when returning to the activity
+    private fun updateRecyclerView() {
+        val displayList = mutableListOf<EntornoListItem>()
+        plantHeaders.forEach { header ->
+            displayList.add(header)
+            if (header.isExpanded) {
+                displayList.addAll(header.planta.fechas.map { EntornoListItem.FechaItem(it) })
+            }
+        }
+        entornoAdapter.submitList(displayList)
     }
 
     override fun onEntornoAdded(entorno: Entorno) {
