@@ -1,73 +1,65 @@
 package edu.istea.adapter
 
-import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import edu.istea.R
-import edu.istea.model.Entorno
+
+// New data class to represent the grouped item
+data class EntornoAgrupado(
+    val plantaId: Int,
+    val plantaNombre: String,
+    val fecha: String
+)
 
 class EntornoAdapter(
-    private val onModifyClick: (Entorno) -> Unit,
-    private val onDeleteClick: (Entorno) -> Unit
-) : ListAdapter<Entorno, EntornoAdapter.EntornoViewHolder>(EntornoDiffCallback()) {
+    private val onItemClick: (EntornoAgrupado) -> Unit // Click listener for the whole card
+) : ListAdapter<EntornoAgrupado, EntornoAdapter.EntornoViewHolder>(EntornoAgrupadoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EntornoViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.entorno_list_item, parent, false)
-        return EntornoViewHolder(view, onModifyClick, onDeleteClick)
+        return EntornoViewHolder(view, onItemClick)
     }
 
     override fun onBindViewHolder(holder: EntornoViewHolder, position: Int) {
-        val entorno = getItem(position)
-        holder.bind(entorno)
+        val entornoAgrupado = getItem(position)
+        holder.bind(entornoAgrupado)
     }
 
     class EntornoViewHolder(
         itemView: View,
-        private val onModifyClick: (Entorno) -> Unit,
-        private val onDeleteClick: (Entorno) -> Unit
+        private val onItemClick: (EntornoAgrupado) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
-        private val descripcion: TextView = itemView.findViewById(R.id.tv_entorno_descripcion)
-        private val info: TextView = itemView.findViewById(R.id.tv_entorno_info)
-        private val modifyButton: ImageButton = itemView.findViewById(R.id.btn_modificar_entorno)
-        private val deleteButton: ImageButton = itemView.findViewById(R.id.btn_eliminar_entorno)
-        private lateinit var currentEntorno: Entorno
+        private val plantaNombreTextView: TextView = itemView.findViewById(R.id.tv_planta_nombre_group)
+        private val fechaTextView: TextView = itemView.findViewById(R.id.tv_fecha_group)
+        private lateinit var currentEntornoAgrupado: EntornoAgrupado
 
         init {
-            modifyButton.setOnClickListener {
-                onModifyClick(currentEntorno)
-            }
-            deleteButton.setOnClickListener {
-                AlertDialog.Builder(itemView.context)
-                    .setTitle("Confirmar Eliminación")
-                    .setMessage("¿Estás seguro de que quieres eliminar esta medición de entorno?")
-                    .setPositiveButton("Eliminar") { _, _ ->
-                        onDeleteClick(currentEntorno)
-                    }
-                    .setNegativeButton("Cancelar", null)
-                    .show()
+            // Set the click listener on the whole card view
+            itemView.setOnClickListener {
+                onItemClick(currentEntornoAgrupado)
             }
         }
 
-        fun bind(entorno: Entorno) {
-            currentEntorno = entorno
-            descripcion.text = "${entorno.tipo}: ${entorno.valor} ${entorno.unidad}"
-            info.text = "${entorno.plantaNombre} - ${entorno.fecha}"
+        fun bind(entornoAgrupado: EntornoAgrupado) {
+            currentEntornoAgrupado = entornoAgrupado
+            plantaNombreTextView.text = entornoAgrupado.plantaNombre
+            fechaTextView.text = entornoAgrupado.fecha
         }
     }
 }
 
-class EntornoDiffCallback : DiffUtil.ItemCallback<Entorno>() {
-    override fun areItemsTheSame(oldItem: Entorno, newItem: Entorno): Boolean {
-        return oldItem.id == newItem.id
+class EntornoAgrupadoDiffCallback : DiffUtil.ItemCallback<EntornoAgrupado>() {
+    override fun areItemsTheSame(oldItem: EntornoAgrupado, newItem: EntornoAgrupado): Boolean {
+        // A unique group is defined by the plant and the date
+        return oldItem.plantaId == newItem.plantaId && oldItem.fecha == newItem.fecha
     }
 
-    override fun areContentsTheSame(oldItem: Entorno, newItem: Entorno): Boolean {
+    override fun areContentsTheSame(oldItem: EntornoAgrupado, newItem: EntornoAgrupado): Boolean {
         return oldItem == newItem
     }
 }

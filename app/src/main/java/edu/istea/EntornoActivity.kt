@@ -1,5 +1,6 @@
 package edu.istea
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -7,9 +8,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import edu.istea.adapter.EntornoAdapter
+import edu.istea.adapter.EntornoAgrupado
 import edu.istea.dao.DBHelper
 import edu.istea.model.Entorno
-import edu.istea.model.Planta
 import edu.istea.views.AddEntornoDialogFragment
 
 class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntornoDialogListener {
@@ -26,10 +27,7 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
         dbHelper = DBHelper(this)
 
         val rvEntorno: RecyclerView = findViewById(R.id.rv_entorno)
-        entornoAdapter = EntornoAdapter(
-            onModifyClick = ::handleModify,
-            onDeleteClick = ::handleDelete
-        )
+        entornoAdapter = EntornoAdapter(::handleItemClick)
         rvEntorno.adapter = entornoAdapter
         rvEntorno.layoutManager = LinearLayoutManager(this)
 
@@ -39,25 +37,28 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
             val dialog = AddEntornoDialogFragment.newInstance(plantas)
             dialog.show(supportFragmentManager, "AddEntornoDialogFragment")
         }
-        
+
         loadEntornos()
     }
 
-    private fun handleModify(entorno: Entorno) {
-        val plantas = dbHelper.getAllPlantas()
-        val dialog = AddEntornoDialogFragment.newInstance(plantas, entorno)
-        dialog.show(supportFragmentManager, "ModifyEntornoDialogFragment")
-    }
-
-    private fun handleDelete(entorno: Entorno) {
-        dbHelper.deleteEntorno(entorno.id)
-        loadEntornos()
-        Toast.makeText(this, "Medición eliminada", Toast.LENGTH_SHORT).show()
+    private fun handleItemClick(entornoAgrupado: EntornoAgrupado) {
+        val intent = Intent(this, EntornoDetalleActivity::class.java).apply {
+            putExtra(EntornoDetalleActivity.EXTRA_PLANTA_ID, entornoAgrupado.plantaId)
+            putExtra(EntornoDetalleActivity.EXTRA_FECHA, entornoAgrupado.fecha)
+            putExtra(EntornoDetalleActivity.EXTRA_PLANTA_NOMBRE, entornoAgrupado.plantaNombre)
+        }
+        startActivity(intent)
     }
 
     private fun loadEntornos() {
         val entornos = dbHelper.getAllEntornos()
-        entornoAdapter.submitList(entornos)
+        val entornosAgrupados = entornos.groupBy { it.plantaId to it.fecha }
+            .map { (key, group) ->
+                val (plantaId, fecha) = key
+                val plantaNombre = group.first().plantaNombre
+                EntornoAgrupado(plantaId, plantaNombre, fecha)
+            }.sortedByDescending { it.fecha } // Sort by date descending
+        entornoAdapter.submitList(entornosAgrupados)
     }
 
     override fun onEntornoAdded(entorno: Entorno) {

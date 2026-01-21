@@ -2,6 +2,7 @@ package edu.istea.dao
 
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
@@ -163,6 +164,27 @@ class DBHelper(context: Context) :
             db.endTransaction()
         }
         return result
+    }
+
+    fun plantaNombreExiste(nombre: String, plantaId: Int? = null): Boolean {
+        val db = this.readableDatabase
+        var cursor: Cursor? = null
+        try {
+            val query: String
+            val args: Array<String>
+
+            if (plantaId != null && plantaId != 0) {
+                query = "SELECT $COLUMN_PLANTA_ID FROM $TABLE_PLANTAS WHERE $COLUMN_PLANTA_NOMBRE = ? AND $COLUMN_PLANTA_ID != ?"
+                args = arrayOf(nombre, plantaId.toString())
+            } else {
+                query = "SELECT $COLUMN_PLANTA_ID FROM $TABLE_PLANTAS WHERE $COLUMN_PLANTA_NOMBRE = ?"
+                args = arrayOf(nombre)
+            }
+            cursor = db.rawQuery(query, args)
+            return cursor.count > 0
+        } finally {
+            cursor?.close()
+        }
     }
 
     fun savePlanta(planta: Planta) {

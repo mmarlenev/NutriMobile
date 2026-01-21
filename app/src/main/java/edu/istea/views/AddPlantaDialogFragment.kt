@@ -1,23 +1,35 @@
 package edu.istea.views
 
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
 import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.BundleCompat
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
 import edu.istea.R
+import edu.istea.dao.DBHelper
 import edu.istea.model.Planta
-import edu.istea.viewmodel.PlantaViewModel
 
 class AddPlantaDialogFragment : DialogFragment() {
 
-    private val plantaViewModel: PlantaViewModel by activityViewModels()
+    interface PlantaDialogListener {
+        fun onPlantaAdded(planta: Planta)
+        fun onPlantaUpdated(planta: Planta)
+    }
+
+    private var listener: PlantaDialogListener? = null
     private var planta: Planta? = null
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // Try to set the listener from the hosting activity or fragment
+        listener = targetFragment as? PlantaDialogListener ?: context as? PlantaDialogListener
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,30 +39,47 @@ class AddPlantaDialogFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return activity?.let { activity ->
-            val builder = AlertDialog.Builder(activity)
-            val inflater = requireActivity().layoutInflater
-            val view = inflater.inflate(R.layout.dialog_add_planta, null)
+        val activity = activity ?: throw IllegalStateException("Activity cannot be null")
+        val builder = AlertDialog.Builder(activity)
+        val inflater = requireActivity().layoutInflater
+        val view = inflater.inflate(R.layout.dialog_add_planta, null)
 
-            val nombreEditText = view.findViewById<EditText>(R.id.et_nombre_planta)
-            val geneticaRadioGroup = view.findViewById<RadioGroup>(R.id.rg_genetica)
-            val fechaOrigenDatePicker = view.findViewById<DatePicker>(R.id.dp_fecha_origen)
+        val dbHelper = DBHelper(requireContext())
 
-            planta?.let { existingPlanta ->
-                nombreEditText.setText(existingPlanta.nombre)
-                when (existingPlanta.genetica) {
-                    "Autofloreciente" -> view.findViewById<RadioButton>(R.id.rb_autofloreciente).isChecked = true
-                    "Fotoperiódica" -> view.findViewById<RadioButton>(R.id.rb_fotoperiodica).isChecked = true
-                }
-                val dateParts = existingPlanta.fechaOrigen.split("/")
-                fechaOrigenDatePicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
+        val nombreEditText = view.findViewById<EditText>(R.id.et_nombre_planta)
+        val geneticaRadioGroup = view.findViewById<RadioGroup>(R.id.rg_genetica)
+        val fechaOrigenDatePicker = view.findViewById<DatePicker>(R.id.dp_fecha_origen)
+
+        planta?.let { existingPlanta ->
+            nombreEditText.setText(existingPlanta.nombre)
+            when (existingPlanta.genetica) {
+                "Autofloreciente" -> view.findViewById<RadioButton>(R.id.rb_autofloreciente).isChecked = true
+                "Fotoperiódica" -> view.findViewById<RadioButton>(R.id.rb_fotoperiodica).isChecked = true
             }
+            val dateParts = existingPlanta.fechaOrigen.split("/")
+            fechaOrigenDatePicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
+        }
 
-            val actionButtonText = if (planta == null) "Añadir" else "Actualizar"
+        val actionButtonText = if (planta == null) "Añadir" else "Actualizar"
 
-            builder.setView(view)
-                .setPositiveButton(actionButtonText) { _, _ ->
-                    val nombre = nombreEditText.text.toString()
+        val dialog = builder.setView(view)
+            .setPositiveButton(actionButtonText, null) // Override to control dismiss
+            .setNegativeButton("Cancelar", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener { 
+                val nombre = nombreEditText.text.toString().trim()
+
+                if (nombre.isBlank()) {
+                    Toast.makeText(requireContext(), "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                if (dbHelper.plantaNombreExiste(nombre, planta?.id)) {
+                    Toast.makeText(requireContext(), "Ya existe una planta con este nombre", Toast.LENGTH_SHORT).show()
+                } else {
                     val selectedGeneticaId = geneticaRadioGroup.checkedRadioButtonId
                     val genetica = view.findViewById<RadioButton>(selectedGeneticaId).text.toString()
 
@@ -61,28 +90,27 @@ class AddPlantaDialogFragment : DialogFragment() {
 
                     if (planta == null) {
                         val nuevaPlanta = Planta(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
-                        plantaViewModel.addPlanta(nuevaPlanta)
+                        listener?.onPlantaAdded(nuevaPlanta)
                     } else {
                         val plantaActualizada = planta!!.copy(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
-                        plantaViewModel.updatePlanta(plantaActualizada)
+                        listener?.onPlantaUpdated(plantaActualizada)
                     }
+                    dialog.dismiss()
                 }
-                .setNegativeButton("Cancelar") { dialog, _ ->
-                    dialog.cancel()
-                }
-            builder.create()
-        } ?: throw IllegalStateException("Activity cannot be null")
+            }
+        }
+
+        return dialog
     }
 
     companion object {
+        const val TAG = "AddPlantaDialogFragment"
         private const val ARG_PLANTA = "planta"
 
         fun newInstance(planta: Planta? = null): AddPlantaDialogFragment {
             val fragment = AddPlantaDialogFragment()
             val args = Bundle()
-            planta?.let {
-                args.putParcelable(ARG_PLANTA, it)
-            }
+            planta?.let { args.putParcelable(ARG_PLANTA, it) }
             fragment.arguments = args
             return fragment
         }
