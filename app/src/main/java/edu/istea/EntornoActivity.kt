@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -15,6 +16,9 @@ import edu.istea.dao.DBHelper
 import edu.istea.logic.AlertLogic
 import edu.istea.model.Entorno
 import edu.istea.views.AddEntornoDialogFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntornoDialogListener {
 
@@ -68,28 +72,32 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
     }
 
     private fun loadEntornos() {
-        val currentExpandedIds = plantHeaders.filter { it.isExpanded }.map { it.planta.plantaId }.toSet()
+        lifecycleScope.launch(Dispatchers.Main) {
+            val currentExpandedIds = plantHeaders.filter { it.isExpanded }.map { it.planta.plantaId }.toSet()
 
-        val allEntornos = dbHelper.getAllEntornos()
-        val plantasConEntornos = allEntornos.groupBy { it.plantaId }
-            .map { (plantaId, mediciones) ->
-                val plantaNombre = mediciones.first().plantaNombre
-                val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
-                val ultimaFecha = fechas.firstOrNull() ?: "N/A"
-                
-                val latestMeasurements = mediciones.filter { it.fecha == ultimaFecha }
-                val alertStatus = AlertLogic.getAlertStatus(latestMeasurements)
+            val plantasConEntornos = withContext(Dispatchers.IO) {
+                val allEntornos = dbHelper.getAllEntornos()
+                allEntornos.groupBy { it.plantaId }
+                    .map { (plantaId, mediciones) ->
+                        val plantaNombre = mediciones.first().plantaNombre
+                        val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
+                        val ultimaFecha = fechas.firstOrNull() ?: "N/A"
+                        
+                        val latestMeasurements = mediciones.filter { it.fecha == ultimaFecha }
+                        val alertStatus = AlertLogic.getAlertStatus(latestMeasurements)
 
-                val fechasItems = fechas.map { EntornoFecha(plantaId, plantaNombre, it) }
-                EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems, alertStatus)
+                        val fechasItems = fechas.map { EntornoFecha(plantaId, plantaNombre, it) }
+                        EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems, alertStatus)
+                    }
             }
-        
-        plantHeaders.clear()
-        plantHeaders.addAll(plantasConEntornos.map { planta ->
-            EntornoListItem.PlantaHeader(planta, isExpanded = planta.plantaId in currentExpandedIds)
-        })
+            
+            plantHeaders.clear()
+            plantHeaders.addAll(plantasConEntornos.map { planta ->
+                EntornoListItem.PlantaHeader(planta, isExpanded = planta.plantaId in currentExpandedIds)
+            })
 
-        updateRecyclerView()
+            updateRecyclerView()
+        }
     }
 
     private fun updateRecyclerView() {
@@ -104,13 +112,11 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
     }
 
     override fun onEntornoAdded(entorno: Entorno) {
-        dbHelper.saveEntorno(entorno)
         loadEntornos()
         Toast.makeText(this, "Medición añadida para ${entorno.plantaNombre}", Toast.LENGTH_SHORT).show()
     }
 
     override fun onEntornoUpdated(entorno: Entorno) {
-        dbHelper.updateEntorno(entorno)
         loadEntornos()
         Toast.makeText(this, "Medición actualizada", Toast.LENGTH_SHORT).show()
     }

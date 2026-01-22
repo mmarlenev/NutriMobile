@@ -9,7 +9,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import edu.istea.adapter.EtapaAdapter
 import edu.istea.dao.DBHelper
 import edu.istea.model.Etapa
-import edu.istea.model.Planta
 import edu.istea.views.AddEtapaDialogFragment
 
 class EtapasActivity : AppCompatActivity(), AddEtapaDialogFragment.AddEtapaDialogListener {
@@ -26,7 +25,10 @@ class EtapasActivity : AppCompatActivity(), AddEtapaDialogFragment.AddEtapaDialo
         dbHelper = DBHelper(this)
 
         val rvEtapas: RecyclerView = findViewById(R.id.rv_etapas)
-        etapaAdapter = EtapaAdapter()
+        etapaAdapter = EtapaAdapter(
+            onModifyClick = ::handleModify,
+            onDeleteClick = ::handleDelete
+        )
         rvEtapas.adapter = etapaAdapter
         rvEtapas.layoutManager = LinearLayoutManager(this)
 
@@ -38,6 +40,17 @@ class EtapasActivity : AppCompatActivity(), AddEtapaDialogFragment.AddEtapaDialo
         }
         
         loadEtapas()
+    }
+
+    private fun handleModify(etapa: Etapa) {
+        // TODO: Implementar la modificación de una etapa
+        Toast.makeText(this, "Modificar etapa: ${etapa.estado}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handleDelete(etapa: Etapa) {
+        dbHelper.deleteEtapa(etapa.id)
+        loadEtapas()
+        Toast.makeText(this, "Etapa eliminada", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadEtapas() {

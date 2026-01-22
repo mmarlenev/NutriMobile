@@ -240,6 +240,15 @@ class DBHelper(context: Context) :
         }
     }
 
+    fun deleteEtapa(etapaId: Int) {
+        performDbOperation { db ->
+            val deletedRows = db.delete(TABLE_ETAPAS, "$COLUMN_ETAPA_ID = ?", arrayOf(etapaId.toString()))
+            if (deletedRows > 0) {
+                saveHistorialEvento(db, "Etapa Eliminada", "Se eliminó un registro de etapa.")
+            }
+        }
+    }
+
     fun saveEntorno(entorno: Entorno) {
         performDbOperation { db ->
             val values = ContentValues()

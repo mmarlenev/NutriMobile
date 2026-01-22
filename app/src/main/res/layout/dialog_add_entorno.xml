@@ -25,26 +25,39 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp" />
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_marginTop="16dp">
 
-        <EditText
-            android:id="@+id/et_valor_medicion"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:id="@+id/numeric_input_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Valor" />
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/tv_unidad_medicion"
-            android:layout_width="wrap_content"
+            <EditText
+                android:id="@+id/et_valor_medicion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Valor" />
+
+            <TextView
+                android:id="@+id/tv_unidad_medicion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="Unidad" />
+        </LinearLayout>
+
+        <Spinner
+            android:id="@+id/spinner_valor_nivel"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="Unidad" />
-    </LinearLayout>
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <DatePicker
         android:id="@+id/dp_fecha_entorno"

@@ -21,25 +21,31 @@ class AddEntornoDialogFragment : DialogFragment(), AddPlantaDialogFragment.Plant
     }
 
     private val ADD_PLANTA_OPTION = "+ Agregar planta"
+
+    // Define measurement types and their input methods
     private val tiposMedicion = listOf(
-        TipoMedicion("Acidez de Tierra", "ph"),
-        TipoMedicion("Temperatura de Tierra", "°C"),
-        TipoMedicion("Humedad de Tierra", "%"),
-        TipoMedicion("Luz a Hoja", "lux"),
-        TipoMedicion("Humedad Ambiente", "%"),
-        TipoMedicion("Temperatura ambiente", "°C")
+        TipoMedicion("Acidez de Tierra", "ph", isNumeric = true),
+        TipoMedicion("Temperatura de Tierra", "°C", isNumeric = true),
+        TipoMedicion("Humedad de Tierra", "", isNumeric = false, levels = listOf("DRY+", "DRY", "NOR", "WET", "WET+")),
+        TipoMedicion("Luz a Hoja", "", isNumeric = false, levels = listOf("LOW-", "LOW", "LOW+", "NOR-", "NOR", "NOR+", "HGH-", "HGH", "HGH+")),
+        TipoMedicion("Humedad Ambiente", "%", isNumeric = true),
+        TipoMedicion("Temperatura ambiente", "°C", isNumeric = true)
     )
 
+    // Views
     private lateinit var plantaSpinner: Spinner
     private lateinit var fechaPicker: DatePicker
     private lateinit var tipoSpinner: Spinner
     private lateinit var valorEditText: EditText
     private lateinit var unidadTextView: TextView
+    private lateinit var valorNivelSpinner: Spinner
+    private lateinit var numericInputContainer: View
 
+    // State
     private var entornoToEdit: Entorno? = null
     private var plantas: MutableList<Planta> = mutableListOf()
     private lateinit var dbHelper: DBHelper
-    private var lastSelectedPosition: Int = 0
+    private var lastSelectedPlantaPosition: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,86 +57,101 @@ class AddEntornoDialogFragment : DialogFragment(), AddPlantaDialogFragment.Plant
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return activity?.let {
-            val builder = AlertDialog.Builder(it)
-            val inflater = requireActivity().layoutInflater
-            val view = inflater.inflate(R.layout.dialog_add_entorno, null)
+        val view = requireActivity().layoutInflater.inflate(R.layout.dialog_add_entorno, null)
+        setupViews(view)
+        setupPlantaSpinner()
+        setupTipoSpinner()
+        entornoToEdit?.let { setupForEditing(it) }
 
-            plantaSpinner = view.findViewById(R.id.spinner_planta_entorno)
-            fechaPicker = view.findViewById(R.id.dp_fecha_entorno)
-            tipoSpinner = view.findViewById(R.id.spinner_tipo_medicion)
-            valorEditText = view.findViewById(R.id.et_valor_medicion)
-            unidadTextView = view.findViewById(R.id.tv_unidad_medicion)
-
-            updatePlantaSpinner()
-
-            plantaSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    if (position == 0) {
-                        plantaSpinner.setSelection(lastSelectedPosition) // Revert selection
-                        val dialog = AddPlantaDialogFragment.newInstance()
-                        dialog.setTargetFragment(this@AddEntornoDialogFragment, 0)
-                        dialog.show(parentFragmentManager, AddPlantaDialogFragment.TAG)
-                    } else {
-                        lastSelectedPosition = position
-                    }
-                }
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-
-            val tipoNombres = tiposMedicion.map { it.nombre }
-            val tipoAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, tipoNombres)
-            tipoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            tipoSpinner.adapter = tipoAdapter
-
-            tipoSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    unidadTextView.text = tiposMedicion[position].unidad
-                }
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-
-            entornoToEdit?.let { setupForEditing(it) }
-
-            val buttonText = if (entornoToEdit == null) "Añadir" else "Actualizar"
-            builder.setView(view)
-                .setPositiveButton(buttonText, null)
-                .setNegativeButton(if (entornoToEdit == null) "Finalizar" else "Cancelar", null)
-                .create()
-        } ?: throw IllegalStateException("Activity cannot be null")
+        val buttonText = if (entornoToEdit == null) "Añadir" else "Actualizar"
+        return AlertDialog.Builder(requireContext())
+            .setView(view)
+            .setPositiveButton(buttonText, null) // Override in onStart
+            .setNegativeButton(if (entornoToEdit == null) "Finalizar" else "Cancelar", null)
+            .create()
     }
 
-    private fun updatePlantaSpinner(newPlantaNombre: String? = null) {
-        val plantaNombres = plantas.map { it.nombre }.toMutableList()
-        plantaNombres.add(0, ADD_PLANTA_OPTION)
-        val plantaAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, plantaNombres)
-        plantaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        plantaSpinner.adapter = plantaAdapter
+    private fun setupViews(view: View) {
+        plantaSpinner = view.findViewById(R.id.spinner_planta_entorno)
+        fechaPicker = view.findViewById(R.id.dp_fecha_entorno)
+        tipoSpinner = view.findViewById(R.id.spinner_tipo_medicion)
+        valorEditText = view.findViewById(R.id.et_valor_medicion)
+        unidadTextView = view.findViewById(R.id.tv_unidad_medicion)
+        valorNivelSpinner = view.findViewById(R.id.spinner_valor_nivel)
+        numericInputContainer = view.findViewById(R.id.numeric_input_container)
+    }
 
-        val positionToSelect = if (newPlantaNombre != null) {
-            plantaNombres.indexOf(newPlantaNombre)
-        } else {
-            1 // Default to the first actual planta if available
+    private fun setupPlantaSpinner() {
+        updatePlantaSpinnerUI()
+        plantaSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                if (position == 0) {
+                    plantaSpinner.setSelection(lastSelectedPlantaPosition) // Revert selection
+                    AddPlantaDialogFragment.newInstance().apply {
+                        setTargetFragment(this@AddEntornoDialogFragment, 0)
+                        show(parentFragmentManager, AddPlantaDialogFragment.TAG)
+                    }
+                } else {
+                    lastSelectedPlantaPosition = position
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
+    }
 
-        if (positionToSelect != -1 && positionToSelect < plantaNombres.size) {
-            plantaSpinner.setSelection(positionToSelect)
-            lastSelectedPosition = positionToSelect
+    private fun setupTipoSpinner() {
+        val tipoNombres = tiposMedicion.map { it.nombre }
+        val adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, tipoNombres)
+        adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+        tipoSpinner.adapter = adapter
+        
+        tipoSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateInputForMeasurementType(tiposMedicion[position])
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun updateInputForMeasurementType(tipo: TipoMedicion) {
+        if (tipo.isNumeric) {
+            numericInputContainer.visibility = View.VISIBLE
+            valorNivelSpinner.visibility = View.GONE
+            unidadTextView.text = tipo.unidad
+            valorEditText.setText("")
+        } else {
+            numericInputContainer.visibility = View.GONE
+            valorNivelSpinner.visibility = View.VISIBLE
+            val adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, tipo.levels!!)
+            adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+            valorNivelSpinner.adapter = adapter
+            unidadTextView.text = ""
         }
     }
 
     private fun setupForEditing(entorno: Entorno) {
-        val plantaPosition = plantas.indexOfFirst { it.id == entorno.plantaId }
-        if (plantaPosition != -1) {
-            plantaSpinner.setSelection(plantaPosition + 1) // Add 1 to account for the "Add" option
-            lastSelectedPosition = plantaPosition + 1
+        // Set Planta
+        val plantaPos = plantas.indexOfFirst { it.id == entorno.plantaId }
+        if (plantaPos != -1) {
+            plantaSpinner.setSelection(plantaPos + 1)
+            lastSelectedPlantaPosition = plantaPos + 1
         }
 
-        val tipoPosition = tiposMedicion.indexOfFirst { it.nombre == entorno.tipo }
-        if (tipoPosition != -1) tipoSpinner.setSelection(tipoPosition)
+        // Set Tipo and Value
+        val tipoPos = tiposMedicion.indexOfFirst { it.nombre == entorno.tipo }
+        if (tipoPos != -1) {
+            tipoSpinner.setSelection(tipoPos)
+            val tipo = tiposMedicion[tipoPos]
+            updateInputForMeasurementType(tipo)
+            if (tipo.isNumeric) {
+                valorEditText.setText(entorno.valor)
+            } else {
+                val levelPos = tipo.levels!!.indexOf(entorno.valor)
+                if (levelPos != -1) valorNivelSpinner.setSelection(levelPos)
+            }
+        }
 
-        valorEditText.setText(entorno.valor)
-
+        // Set Date
         val dateParts = entorno.fecha.split("/")
         if (dateParts.size == 3) {
             fechaPicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
@@ -139,59 +160,58 @@ class AddEntornoDialogFragment : DialogFragment(), AddPlantaDialogFragment.Plant
 
     override fun onStart() {
         super.onStart()
-        val dialog = dialog as? AlertDialog
-        dialog?.getButton(Dialog.BUTTON_POSITIVE)?.setOnClickListener { handlePositiveButtonClick() }
+        (dialog as? AlertDialog)?.getButton(Dialog.BUTTON_POSITIVE)?.setOnClickListener { handlePositiveButtonClick() }
     }
 
     private fun handlePositiveButtonClick() {
-        if (plantas.isEmpty()) {
-            Toast.makeText(requireContext(), "Debe crear o seleccionar una planta primero", Toast.LENGTH_SHORT).show()
+        if (plantas.isEmpty() || plantaSpinner.selectedItemPosition == 0) {
+            Toast.makeText(requireContext(), "Debe crear o seleccionar una planta", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val selectedIndex = plantaSpinner.selectedItemPosition - 1 // Adjust for "Add" option
-        if (selectedIndex < 0) return
+        val selectedPlanta = plantas[plantaSpinner.selectedItemPosition - 1]
+        val selectedTipo = tiposMedicion[tipoSpinner.selectedItemPosition]
         
-        val selectedPlanta = plantas[selectedIndex]
-        val tipo = tiposMedicion[tipoSpinner.selectedItemPosition]
-        val valor = valorEditText.text.toString()
+        val valor = if (selectedTipo.isNumeric) {
+            valorEditText.text.toString()
+        } else {
+            valorNivelSpinner.selectedItem.toString()
+        }
 
         if (valor.isBlank()) {
             Toast.makeText(requireContext(), "El valor no puede estar vacío", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val day = fechaPicker.dayOfMonth
-        val month = fechaPicker.month
-        val year = fechaPicker.year
-        val fecha = "${day}/${month + 1}/${year}"
+        val fecha = "${fechaPicker.dayOfMonth}/${fechaPicker.month + 1}/${fechaPicker.year}"
+        val listener = activity as? AddEntornoDialogListener
+
+        val entorno = entornoToEdit?.copy(
+            plantaId = selectedPlanta.id,
+            plantaNombre = selectedPlanta.nombre,
+            fecha = fecha,
+            tipo = selectedTipo.nombre,
+            valor = valor,
+            unidad = selectedTipo.unidad
+        ) ?: Entorno(
+            plantaId = selectedPlanta.id,
+            plantaNombre = selectedPlanta.nombre,
+            fecha = fecha,
+            tipo = selectedTipo.nombre,
+            valor = valor,
+            unidad = selectedTipo.unidad
+        )
 
         if (entornoToEdit == null) {
-            val nuevoEntorno = Entorno(
-                plantaId = selectedPlanta.id,
-                plantaNombre = selectedPlanta.nombre,
-                fecha = fecha,
-                tipo = tipo.nombre,
-                valor = valor,
-                unidad = tipo.unidad
-            )
-            (activity as? AddEntornoDialogListener)?.onEntornoAdded(nuevoEntorno)
-            valorEditText.text.clear()
+            listener?.onEntornoAdded(entorno)
+            // Reset for next entry
             tipoSpinner.setSelection(0)
-            valorEditText.requestFocus()
+            valorEditText.setText("")
             plantaSpinner.isEnabled = false
             fechaPicker.isEnabled = false
             Toast.makeText(requireContext(), "Medición añadida. Puede añadir otra.", Toast.LENGTH_SHORT).show()
         } else {
-            val entornoActualizado = entornoToEdit!!.copy(
-                plantaId = selectedPlanta.id,
-                plantaNombre = selectedPlanta.nombre,
-                fecha = fecha,
-                tipo = tipo.nombre,
-                valor = valor,
-                unidad = tipo.unidad
-            )
-            (activity as? AddEntornoDialogListener)?.onEntornoUpdated(entornoActualizado)
+            listener?.onEntornoUpdated(entorno)
             dismiss()
         }
     }
@@ -199,11 +219,24 @@ class AddEntornoDialogFragment : DialogFragment(), AddPlantaDialogFragment.Plant
     override fun onPlantaAdded(planta: Planta) {
         dbHelper.savePlanta(planta)
         this.plantas = dbHelper.getAllPlantas().toMutableList()
-        updatePlantaSpinner(planta.nombre)
+        updatePlantaSpinnerUI(planta.nombre)
         Toast.makeText(requireContext(), "Planta '${planta.nombre}' creada", Toast.LENGTH_SHORT).show()
     }
 
     override fun onPlantaUpdated(planta: Planta) {}
+
+    private fun updatePlantaSpinnerUI(newPlantaNombre: String? = null) {
+        val plantaNombres = plantas.map { it.nombre }.toMutableList().apply {
+            add(0, ADD_PLANTA_OPTION)
+        }
+        val adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, plantaNombres)
+        adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+        plantaSpinner.adapter = adapter
+
+        val position = newPlantaNombre?.let { plantaNombres.indexOf(it) } ?: if (plantas.isNotEmpty()) 1 else 0
+        plantaSpinner.setSelection(position)
+        lastSelectedPlantaPosition = position
+    }
 
     companion object {
         private const val ARG_ENTORNO = "entorno_to_edit"
