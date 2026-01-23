@@ -12,6 +12,7 @@ import edu.istea.model.Etapa
 import edu.istea.model.HistorialEvento
 import edu.istea.model.Planta
 import edu.istea.model.User
+import edu.istea.views.HistorialFilter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -313,6 +314,87 @@ class DBHelper(context: Context) :
                 saveHistorialEvento(db, "Alimentación Eliminada", "Se eliminó un registro de alimentación.")
             }
         }
+    }
+
+    fun clearHistorial() {
+        performDbOperation { db ->
+            db.delete(TABLE_HISTORIAL, null, null)
+        }
+    }
+
+    fun getPlanta(id: Int): Planta? {
+        val db = this.readableDatabase
+        val cursor = db.query(TABLE_PLANTAS, null, "$COLUMN_PLANTA_ID = ?", arrayOf(id.toString()), null, null, null)
+        if (cursor.moveToFirst()) {
+            val nombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_NOMBRE))
+            val genetica = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_GENETICA))
+            val fechaOrigen = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_FECHA_ORIGEN))
+            cursor.close()
+            return Planta(id, nombre, genetica, fechaOrigen)
+        }
+        cursor.close()
+        return null
+    }
+
+    fun getFilteredHistorialEventos(filter: HistorialFilter?): List<HistorialEvento> {
+        if (filter == null) {
+            return getAllHistorialEventos()
+        }
+
+        val eventos = mutableListOf<HistorialEvento>()
+        val db = this.readableDatabase
+        
+        val selectionClauses = mutableListOf<String>()
+        val selectionArgs = mutableListOf<String>()
+
+        filter.plantaId?.let {
+            getPlanta(it)?.let {
+                selectionClauses.add("$COLUMN_HISTORIAL_DESCRIPCION LIKE ?")
+                selectionArgs.add("%${it.nombre}%")
+            }
+        }
+
+        filter.tipoRegistro?.let {
+            selectionClauses.add("$COLUMN_HISTORIAL_TIPO_EVENTO = ?")
+            selectionArgs.add(it)
+        }
+
+        try {
+            val inputFormat = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
+            val dbFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+            filter.fechaDesde?.let {
+                val date = inputFormat.parse(it)
+                if (date != null) {
+                    selectionClauses.add("date($COLUMN_HISTORIAL_FECHA) >= date(?)")
+                    selectionArgs.add(dbFormat.format(date))
+                }
+            }
+            filter.fechaHasta?.let {
+                val date = inputFormat.parse(it)
+                if (date != null) {
+                    selectionClauses.add("date($COLUMN_HISTORIAL_FECHA) <= date(?)")
+                    selectionArgs.add(dbFormat.format(date))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DBHelper", "Error parsing dates for filtering", e)
+        }
+
+        val selection = selectionClauses.joinToString(separator = " AND ")
+        val cursor = db.query(TABLE_HISTORIAL, null, selection, selectionArgs.toTypedArray(), null, null, "$COLUMN_HISTORIAL_ID DESC")
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_ID))
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_FECHA))
+                val tipo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_TIPO_EVENTO))
+                val desc = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_HISTORIAL_DESCRIPCION))
+                eventos.add(HistorialEvento(id, fecha, tipo, desc))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return eventos
     }
     
     fun getAllHistorialEventos(): List<HistorialEvento> {
