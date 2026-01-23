@@ -19,11 +19,11 @@ class AddAlimentacionDialogFragment(private val plantas: List<Planta>) : DialogF
     }
 
     private val insumos = listOf(
-        Insumo("Tierra", "gramos"),
-        Insumo("Agua", "litros"),
-        Insumo("Fertilizante Vege", "m³"),
-        Insumo("Jabón Potásico", "m³"),
-        Insumo("Fertilizante Flora", "m³")
+        Insumo("Tierra", "g"),
+        Insumo("Agua", "ml"),
+        Insumo("Fertilizante Vege", "ml"),
+        Insumo("Jabón Potásico", "ml"),
+        Insumo("Fertilizante Flora", "ml")
     )
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

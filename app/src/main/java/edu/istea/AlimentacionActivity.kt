@@ -9,7 +9,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import edu.istea.adapter.AlimentacionAdapter
 import edu.istea.dao.DBHelper
 import edu.istea.model.Alimentacion
-import edu.istea.model.Planta
 import edu.istea.views.AddAlimentacionDialogFragment
 
 class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.AddAlimentacionDialogListener {
@@ -26,7 +25,10 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
         dbHelper = DBHelper(this)
 
         val rvAlimentacion: RecyclerView = findViewById(R.id.rv_alimentacion)
-        alimentacionAdapter = AlimentacionAdapter()
+        alimentacionAdapter = AlimentacionAdapter(
+            onModifyClick = ::handleModify,
+            onDeleteClick = ::handleDelete
+        )
         rvAlimentacion.adapter = alimentacionAdapter
         rvAlimentacion.layoutManager = LinearLayoutManager(this)
 
@@ -38,6 +40,17 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
         }
 
         loadAlimentacion()
+    }
+
+    private fun handleModify(alimentacion: Alimentacion) {
+        // TODO: Implementar la modificación de un registro de alimentación
+        Toast.makeText(this, "Modificar alimentación para ${alimentacion.plantaNombre}", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun handleDelete(alimentacion: Alimentacion) {
+        dbHelper.deleteAlimentacion(alimentacion.id)
+        loadAlimentacion()
+        Toast.makeText(this, "Registro de alimentación eliminado", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadAlimentacion() {

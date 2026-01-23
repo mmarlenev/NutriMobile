@@ -1,24 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/list_item_background">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
 
-    <TextView
-        android:id="@+id/tv_alimentacion_descripcion"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceListItem"
-        android:textColor="@color/primary_text"/>
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tv_alimentacion_info"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:textAppearance="?attr/textAppearanceListItemSecondary"
-        android:textColor="@color/secondary_text"/>
+        <TextView
+            android:id="@+id/tv_alimentacion_descripcion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceListItem"
+            android:textColor="@color/primary_text"
+            android:layout_toStartOf="@+id/buttons_layout_alimentacion" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/tv_alimentacion_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceListItemSecondary"
+            android:textColor="@color/secondary_text"
+            android:layout_below="@id/tv_alimentacion_descripcion"
+            android:layout_toStartOf="@+id/buttons_layout_alimentacion" />
+
+        <LinearLayout
+            android:id="@+id/buttons_layout_alimentacion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true">
+
+            <ImageButton
+                android:id="@+id/btn_modificar_alimentacion"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_edit"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Modificar"
+                app:tint="@color/primary" />
+
+            <ImageButton
+                android:id="@+id/btn_eliminar_alimentacion"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_delete"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Eliminar"
+                app:tint="@color/primary" />
+        </LinearLayout>
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

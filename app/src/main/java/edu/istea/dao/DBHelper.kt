@@ -305,6 +305,15 @@ class DBHelper(context: Context) :
             }
         }
     }
+
+    fun deleteAlimentacion(alimentacionId: Int) {
+        performDbOperation { db ->
+            val deletedRows = db.delete(TABLE_ALIMENTACION, "$COLUMN_ALIMENTACION_ID = ?", arrayOf(alimentacionId.toString()))
+            if (deletedRows > 0) {
+                saveHistorialEvento(db, "Alimentación Eliminada", "Se eliminó un registro de alimentación.")
+            }
+        }
+    }
     
     fun getAllHistorialEventos(): List<HistorialEvento> {
         val eventos = mutableListOf<HistorialEvento>()
