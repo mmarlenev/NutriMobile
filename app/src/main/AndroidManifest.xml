@@ -23,6 +23,7 @@
         <activity android:name=".AlimentacionActivity" android:exported="false" />
         <activity android:name=".HistorialActivity" android:exported="false" />
         <activity android:name=".EntornoDetalleActivity" android:exported="false" />
+        <activity android:name=".AlimentacionDetalleActivity" android:exported="false" />
     </application>
 
 </manifest>

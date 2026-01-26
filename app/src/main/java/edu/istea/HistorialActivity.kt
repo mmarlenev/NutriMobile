@@ -1,11 +1,14 @@
 package edu.istea
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -50,6 +53,11 @@ class HistorialActivity : AppCompatActivity(), HistorialFilterDialogFragment.His
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.historial_menu, menu)
+
+        // Apply white tint to menu icons
+        menu?.findItem(R.id.action_filter)?.icon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
+        menu?.findItem(R.id.action_delete_all)?.icon?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
+
         return true
     }
 

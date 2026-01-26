@@ -10,9 +10,8 @@ import edu.istea.R
 import edu.istea.model.Alimentacion
 import edu.istea.model.Insumo
 import edu.istea.model.Planta
-import java.util.Calendar
 
-class AddAlimentacionDialogFragment() : DialogFragment() {
+class AddAlimentacionDialogFragment : DialogFragment() {
 
     interface AddAlimentacionDialogListener {
         fun onAlimentacionAdded(alimentacion: Alimentacion)
@@ -30,6 +29,12 @@ class AddAlimentacionDialogFragment() : DialogFragment() {
         Insumo("Fertilizante Flora", "ml")
     )
 
+    private lateinit var plantaSpinner: Spinner
+    private lateinit var fechaPicker: DatePicker
+    private lateinit var insumoSpinner: Spinner
+    private lateinit var cantidadEditText: EditText
+    private lateinit var unidadTextView: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -39,76 +44,121 @@ class AddAlimentacionDialogFragment() : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return activity?.let {
-            val builder = AlertDialog.Builder(it)
-            val inflater = requireActivity().layoutInflater
-            val view = inflater.inflate(R.layout.dialog_add_alimentacion, null)
+        val view = requireActivity().layoutInflater.inflate(R.layout.dialog_add_alimentacion, null)
+        setupViews(view)
+        setupSpinners()
+        alimentacionToEdit?.let { setupForEditing(it) }
 
-            val plantaSpinner = view.findViewById<Spinner>(R.id.spinner_planta_alimentacion)
-            val fechaPicker = view.findViewById<DatePicker>(R.id.dp_fecha_alimentacion)
-            val insumoSpinner = view.findViewById<Spinner>(R.id.spinner_insumo)
-            val cantidadEditText = view.findViewById<EditText>(R.id.et_cantidad_insumo)
-            val unidadTextView = view.findViewById<TextView>(R.id.tv_unidad_insumo)
+        val builder = AlertDialog.Builder(requireContext()).setView(view)
 
-            val plantaNombres = plantas.map { it.nombre }
-            plantaSpinner.adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, plantaNombres).apply {
-                setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
-            }
+        if (alimentacionToEdit == null) {
+            builder.setPositiveButton("Guardar y Finalizar") { _, _ -> handleSave(true) }
+            builder.setNeutralButton("Guardar y Añadir Otro", null)
+        } else {
+            builder.setPositiveButton("Actualizar") { _, _ -> handleSave(true) }
+        }
 
-            val insumoNombres = insumos.map { it.nombre }
-            insumoSpinner.adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, insumoNombres).apply {
-                setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
-            }
-
-            insumoSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    unidadTextView.text = insumos[position].unidad
-                }
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-
-            alimentacionToEdit?.let {
-                setupForEditing(it, plantaSpinner, insumoSpinner, cantidadEditText, fechaPicker)
-            }
-
-            val buttonText = if (alimentacionToEdit == null) "Añadir" else "Actualizar"
-
-            builder.setView(view)
-                .setPositiveButton(buttonText) { _, _ ->
-                    val selectedPlanta = plantas[plantaSpinner.selectedItemPosition]
-                    val insumo = insumos[insumoSpinner.selectedItemPosition]
-                    val cantidad = cantidadEditText.text.toString().toFloatOrNull() ?: 0f
-                    val fecha = "${fechaPicker.dayOfMonth}/${fechaPicker.month + 1}/${fechaPicker.year}"
-                    
-                    val listener = activity as? AddAlimentacionDialogListener
-                    if (alimentacionToEdit == null) {
-                        val nuevaAlimentacion = Alimentacion(
-                            plantaId = selectedPlanta.id,
-                            plantaNombre = selectedPlanta.nombre,
-                            fecha = fecha,
-                            insumo = insumo.nombre,
-                            cantidad = cantidad,
-                            unidad = insumo.unidad
-                        )
-                        listener?.onAlimentacionAdded(nuevaAlimentacion)
-                    } else {
-                        val alimentacionActualizada = alimentacionToEdit!!.copy(
-                            plantaId = selectedPlanta.id,
-                            plantaNombre = selectedPlanta.nombre,
-                            fecha = fecha,
-                            insumo = insumo.nombre,
-                            cantidad = cantidad,
-                            unidad = insumo.unidad
-                        )
-                        listener?.onAlimentacionUpdated(alimentacionActualizada)
-                    }
-                }
-                .setNegativeButton("Cancelar", null)
-                .create()
-        } ?: throw IllegalStateException("Activity cannot be null")
+        return builder.create()
     }
 
-    private fun setupForEditing(alimentacion: Alimentacion, plantaSpinner: Spinner, insumoSpinner: Spinner, cantidadEditText: EditText, fechaPicker: DatePicker) {
+    override fun onStart() {
+        super.onStart()
+        val dialog = dialog as? AlertDialog
+        dialog?.let {
+            val neutralButton = it.getButton(Dialog.BUTTON_NEUTRAL)
+            neutralButton?.setOnClickListener {
+                handleSave(false)
+            }
+        }
+    }
+
+    private fun handleSave(shouldDismiss: Boolean) {
+        if (plantas.isEmpty()) {
+            Toast.makeText(requireContext(), "Debe crear al menos una planta primero", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val cantidadStr = cantidadEditText.text.toString()
+        if (cantidadStr.isBlank()) {
+            Toast.makeText(requireContext(), "La cantidad no puede estar vacía", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val cantidad = cantidadStr.toFloatOrNull()
+        if (cantidad == null || cantidad <= 0f) {
+            Toast.makeText(requireContext(), "Por favor, ingrese una cantidad válida", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val selectedPlanta = plantas[plantaSpinner.selectedItemPosition]
+        val selectedInsumo = insumos[insumoSpinner.selectedItemPosition]
+        val fecha = "${fechaPicker.dayOfMonth}/${fechaPicker.month + 1}/${fechaPicker.year}"
+        val listener = activity as? AddAlimentacionDialogListener
+
+        val alimentacion = alimentacionToEdit?.copy(
+            plantaId = selectedPlanta.id,
+            plantaNombre = selectedPlanta.nombre,
+            fecha = fecha,
+            insumo = selectedInsumo.nombre,
+            cantidad = cantidad,
+            unidad = selectedInsumo.unidad
+        ) ?: Alimentacion(
+            plantaId = selectedPlanta.id,
+            plantaNombre = selectedPlanta.nombre,
+            fecha = fecha,
+            insumo = selectedInsumo.nombre,
+            cantidad = cantidad,
+            unidad = selectedInsumo.unidad
+        )
+
+        if (alimentacionToEdit == null) {
+            listener?.onAlimentacionAdded(alimentacion)
+        } else {
+            listener?.onAlimentacionUpdated(alimentacion)
+        }
+
+        val toastMessage = when {
+            alimentacionToEdit != null -> "Alimentación actualizada"
+            shouldDismiss -> "Alimentación añadida"
+            else -> "Alimentación añadida. Puede añadir otra."
+        }
+        Toast.makeText(requireContext(), toastMessage, Toast.LENGTH_SHORT).show()
+
+        if (shouldDismiss) {
+            dismiss()
+        } else {
+            cantidadEditText.setText("")
+            insumoSpinner.setSelection(0)
+        }
+    }
+
+    private fun setupViews(view: View) {
+        plantaSpinner = view.findViewById(R.id.spinner_planta_alimentacion)
+        fechaPicker = view.findViewById(R.id.dp_fecha_alimentacion)
+        insumoSpinner = view.findViewById(R.id.spinner_insumo)
+        cantidadEditText = view.findViewById(R.id.et_cantidad_insumo)
+        unidadTextView = view.findViewById(R.id.tv_unidad_insumo)
+    }
+
+    private fun setupSpinners() {
+        val plantaNombres = plantas.map { it.nombre }
+        plantaSpinner.adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, plantaNombres).apply {
+            setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+        }
+
+        val insumoNombres = insumos.map { it.nombre }
+        insumoSpinner.adapter = ArrayAdapter(requireContext(), R.layout.custom_spinner_item, insumoNombres).apply {
+            setDropDownViewResource(R.layout.custom_spinner_dropdown_item)
+        }
+
+        insumoSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                unidadTextView.text = insumos[position].unidad
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun setupForEditing(alimentacion: Alimentacion) {
         val plantaPos = plantas.indexOfFirst { it.id == alimentacion.plantaId }
         if (plantaPos != -1) plantaSpinner.setSelection(plantaPos)
 

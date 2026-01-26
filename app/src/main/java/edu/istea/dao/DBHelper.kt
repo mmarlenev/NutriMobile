@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import androidx.core.database.sqlite.transaction
 import edu.istea.model.Alimentacion
 import edu.istea.model.Entorno
 import edu.istea.model.Etapa
@@ -71,71 +72,71 @@ class DBHelper(context: Context) :
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        val createTableUser = ("CREATE TABLE " + TABLE_USER +
-                "(" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_NAME + " TEXT," +
-                COLUMN_SURNAME + " TEXT," +
-                COLUMN_NPILA + " TEXT," +
-                COLUMN_PASS + " TEXT )"
-                )
+        val createTableUser = """CREATE TABLE $TABLE_USER(
+                $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_NAME TEXT,
+                $COLUMN_SURNAME TEXT,
+                $COLUMN_NPILA TEXT,
+                $COLUMN_PASS TEXT
+            )"""
         db.execSQL(createTableUser)
 
-        val createTablePlantas = ("CREATE TABLE " + TABLE_PLANTAS +
-                "(" + COLUMN_PLANTA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_PLANTA_NOMBRE + " TEXT," +
-                COLUMN_PLANTA_GENETICA + " TEXT," +
-                COLUMN_PLANTA_FECHA_ORIGEN + " TEXT )"
-                )
+        val createTablePlantas = """CREATE TABLE $TABLE_PLANTAS(
+                $COLUMN_PLANTA_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_PLANTA_NOMBRE TEXT,
+                $COLUMN_PLANTA_GENETICA TEXT,
+                $COLUMN_PLANTA_FECHA_ORIGEN TEXT
+            )"""
         db.execSQL(createTablePlantas)
 
-        val createTableEtapas = ("CREATE TABLE " + TABLE_ETAPAS +
-                "(" + COLUMN_ETAPA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_ETAPA_PLANTA_ID + " INTEGER," +
-                COLUMN_ETAPA_PLANTA_NOMBRE + " TEXT," +
-                COLUMN_ETAPA_ESTADO + " TEXT," +
-                COLUMN_ETAPA_FECHA + " TEXT )"
-                )
+        val createTableEtapas = """CREATE TABLE $TABLE_ETAPAS(
+                $COLUMN_ETAPA_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_ETAPA_PLANTA_ID INTEGER,
+                $COLUMN_ETAPA_PLANTA_NOMBRE TEXT,
+                $COLUMN_ETAPA_ESTADO TEXT,
+                $COLUMN_ETAPA_FECHA TEXT
+            )"""
         db.execSQL(createTableEtapas)
 
-        val createTableEntorno = ("CREATE TABLE " + TABLE_ENTORNO +
-                "(" + COLUMN_ENTORNO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_ENTORNO_PLANTA_ID + " INTEGER," +
-                COLUMN_ENTORNO_PLANTA_NOMBRE + " TEXT," +
-                COLUMN_ENTORNO_FECHA + " TEXT," +
-                COLUMN_ENTORNO_TIPO + " TEXT," +
-                COLUMN_ENTORNO_VALOR + " TEXT," +
-                COLUMN_ENTORNO_UNIDAD + " TEXT )"
-                )
+        val createTableEntorno = """CREATE TABLE $TABLE_ENTORNO(
+                $COLUMN_ENTORNO_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_ENTORNO_PLANTA_ID INTEGER,
+                $COLUMN_ENTORNO_PLANTA_NOMBRE TEXT,
+                $COLUMN_ENTORNO_FECHA TEXT,
+                $COLUMN_ENTORNO_TIPO TEXT,
+                $COLUMN_ENTORNO_VALOR TEXT,
+                $COLUMN_ENTORNO_UNIDAD TEXT
+            )"""
         db.execSQL(createTableEntorno)
 
-        val createTableAlimentacion = ("CREATE TABLE " + TABLE_ALIMENTACION +
-                "(" + COLUMN_ALIMENTACION_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_ALIMENTACION_PLANTA_ID + " INTEGER," +
-                COLUMN_ALIMENTACION_PLANTA_NOMBRE + " TEXT," +
-                COLUMN_ALIMENTACION_FECHA + " TEXT," +
-                COLUMN_ALIMENTACION_INSUMO + " TEXT," +
-                COLUMN_ALIMENTACION_CANTIDAD + " REAL," +
-                COLUMN_ALIMENTACION_UNIDAD + " TEXT )"
-                )
+        val createTableAlimentacion = """CREATE TABLE $TABLE_ALIMENTACION(
+                $COLUMN_ALIMENTACION_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_ALIMENTACION_PLANTA_ID INTEGER,
+                $COLUMN_ALIMENTACION_PLANTA_NOMBRE TEXT,
+                $COLUMN_ALIMENTACION_FECHA TEXT,
+                $COLUMN_ALIMENTACION_INSUMO TEXT,
+                $COLUMN_ALIMENTACION_CANTIDAD REAL,
+                $COLUMN_ALIMENTACION_UNIDAD TEXT
+            )"""
         db.execSQL(createTableAlimentacion)
 
-        val createTableHistorial = ("CREATE TABLE " + TABLE_HISTORIAL +
-                "(" + COLUMN_HISTORIAL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                COLUMN_HISTORIAL_FECHA + " TEXT," +
-                COLUMN_HISTORIAL_TIPO_EVENTO + " TEXT," +
-                COLUMN_HISTORIAL_DESCRIPCION + " TEXT )"
-                )
+        val createTableHistorial = """CREATE TABLE $TABLE_HISTORIAL(
+                $COLUMN_HISTORIAL_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_HISTORIAL_FECHA TEXT,
+                $COLUMN_HISTORIAL_TIPO_EVENTO TEXT,
+                $COLUMN_HISTORIAL_DESCRIPCION TEXT
+            )"""
         db.execSQL(createTableHistorial)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         Log.w("DBHelper", "Upgrading database from version $oldVersion to $newVersion, which will destroy all old data")
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER)
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PLANTAS)
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ETAPAS)
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ENTORNO)
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ALIMENTACION)
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_HISTORIAL)
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_USER")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_PLANTAS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_ETAPAS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_ENTORNO")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_ALIMENTACION")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_HISTORIAL")
         onCreate(db)
     }
 
@@ -153,18 +154,14 @@ class DBHelper(context: Context) :
     }
 
     private fun <T> performDbOperation(operation: (SQLiteDatabase) -> T): T? {
-        val db = this.writableDatabase
-        var result: T? = null
-        db.beginTransaction()
-        try {
-            result = operation(db)
-            db.setTransactionSuccessful()
+        return try {
+            writableDatabase.transaction {
+                operation(this)
+            }
         } catch (e: Exception) {
             Log.e("DBHelper", "Database operation failed", e)
-        } finally {
-            db.endTransaction()
+            null
         }
-        return result
     }
 
     fun plantaNombreExiste(nombre: String, plantaId: Int? = null): Boolean {
@@ -377,8 +374,8 @@ class DBHelper(context: Context) :
         val selectionClauses = mutableListOf<String>()
         val selectionArgs = mutableListOf<String>()
 
-        filter.plantaId?.let {
-            getPlanta(it)?.let {
+        filter.plantaId?.let { plantaId ->
+            getPlanta(plantaId)?.let {
                 selectionClauses.add("$COLUMN_HISTORIAL_DESCRIPCION LIKE ?")
                 selectionArgs.add("%${it.nombre}%")
             }
@@ -506,6 +503,35 @@ class DBHelper(context: Context) :
         }
         cursor.close()
         return entornos
+    }
+    
+    fun getAlimentacionByPlantaAndFecha(plantaId: Int, fecha: String): List<Alimentacion> {
+        val alimentaciones = mutableListOf<Alimentacion>()
+        val db = this.readableDatabase
+        val cursor = db.query(
+            TABLE_ALIMENTACION,
+            null,
+            "$COLUMN_ALIMENTACION_PLANTA_ID = ? AND $COLUMN_ALIMENTACION_FECHA = ?",
+            arrayOf(plantaId.toString(), fecha),
+            null,
+            null,
+            "$COLUMN_ALIMENTACION_ID DESC"
+        )
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_ID))
+                val pId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_NOMBRE))
+                val f = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_FECHA))
+                val insumo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_INSUMO))
+                val cantidad = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_CANTIDAD))
+                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_UNIDAD))
+                alimentaciones.add(Alimentacion(id, pId, plantaNombre, f, insumo, cantidad, unidad))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return alimentaciones
     }
 
     fun getAllEntornos(): List<Entorno> {
