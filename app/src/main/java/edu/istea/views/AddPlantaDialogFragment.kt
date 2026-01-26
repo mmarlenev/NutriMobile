@@ -1,7 +1,6 @@
 package edu.istea.views
 
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
 import android.widget.DatePicker
 import android.widget.EditText
@@ -11,25 +10,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.BundleCompat
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
 import edu.istea.R
 import edu.istea.dao.DBHelper
 import edu.istea.model.Planta
 
 class AddPlantaDialogFragment : DialogFragment() {
 
-    interface PlantaDialogListener {
-        fun onPlantaAdded(planta: Planta)
-        fun onPlantaUpdated(planta: Planta)
-    }
-
-    private var listener: PlantaDialogListener? = null
     private var planta: Planta? = null
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        // Try to set the listener from the hosting activity or fragment
-        listener = targetFragment as? PlantaDialogListener ?: context as? PlantaDialogListener
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,12 +76,15 @@ class AddPlantaDialogFragment : DialogFragment() {
                     val year = fechaOrigenDatePicker.year
                     val fechaOrigen = "$day/${month + 1}/$year"
 
+                    val result = Bundle()
                     if (planta == null) {
                         val nuevaPlanta = Planta(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
-                        listener?.onPlantaAdded(nuevaPlanta)
+                        result.putParcelable("planta", nuevaPlanta)
+                        setFragmentResult("requestKey", result)
                     } else {
                         val plantaActualizada = planta!!.copy(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
-                        listener?.onPlantaUpdated(plantaActualizada)
+                        result.putParcelable("planta", plantaActualizada)
+                        setFragmentResult("requestKey", result)
                     }
                     dialog.dismiss()
                 }

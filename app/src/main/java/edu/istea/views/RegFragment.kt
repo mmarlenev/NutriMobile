@@ -13,7 +13,7 @@ import edu.istea.R
 import edu.istea.dao.DBHelper
 import edu.istea.model.User
 
-class RegFragment(val contextMain:Context) : Fragment() {
+class RegFragment : Fragment() { // Se elimina el constructor
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,7 +27,8 @@ class RegFragment(val contextMain:Context) : Fragment() {
         val pass: EditText = view.findViewById(R.id.r_pass)
         val register: Button = view.findViewById(R.id.r_saveuser)
 
-        val db: DBHelper = DBHelper(contextMain)
+        // Se utiliza requireContext() para obtener el contexto de forma segura
+        val db: DBHelper = DBHelper(requireContext())
 
         register.setOnClickListener(
             View.OnClickListener {

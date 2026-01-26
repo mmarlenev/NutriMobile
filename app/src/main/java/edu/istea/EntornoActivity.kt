@@ -1,6 +1,7 @@
 package edu.istea
 
 import android.content.Intent
+import android.database.sqlite.SQLiteException
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +15,7 @@ import edu.istea.adapter.EntornoListItem
 import edu.istea.adapter.EntornoPlanta
 import edu.istea.dao.DBHelper
 import edu.istea.logic.AlertLogic
-import edu.istea.model.Entorno
+import edu.istea.model.Planta
 import edu.istea.views.AddEntornoDialogFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,9 +45,17 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
 
         val fabAddEntorno: FloatingActionButton = findViewById(R.id.fab_add_entorno)
         fabAddEntorno.setOnClickListener {
-            val plantas = dbHelper.getAllPlantas()
-            val dialog = AddEntornoDialogFragment.newInstance(plantas)
-            dialog.show(supportFragmentManager, "AddEntornoDialogFragment")
+            lifecycleScope.launch {
+                try {
+                    val plantas = withContext(Dispatchers.IO) {
+                        dbHelper.getAllPlantas()
+                    }
+                    val dialog = AddEntornoDialogFragment.newInstance(plantas)
+                    dialog.show(supportFragmentManager, AddEntornoDialogFragment.TAG)
+                } catch (e: SQLiteException) {
+                    Toast.makeText(this@EntornoActivity, "Error al acceder a la base de datos", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -74,29 +83,32 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
     private fun loadEntornos() {
         lifecycleScope.launch(Dispatchers.Main) {
             val currentExpandedIds = plantHeaders.filter { it.isExpanded }.map { it.planta.plantaId }.toSet()
+            try {
+                val plantasConEntornos = withContext(Dispatchers.IO) {
+                    val allEntornos = dbHelper.getAllEntornos()
+                    allEntornos.groupBy { it.plantaId }
+                        .map { (plantaId, mediciones) ->
+                            val plantaNombre = mediciones.first().plantaNombre
+                            val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
+                            val ultimaFecha = fechas.firstOrNull() ?: "N/A"
 
-            val plantasConEntornos = withContext(Dispatchers.IO) {
-                val allEntornos = dbHelper.getAllEntornos()
-                allEntornos.groupBy { it.plantaId }
-                    .map { (plantaId, mediciones) ->
-                        val plantaNombre = mediciones.first().plantaNombre
-                        val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
-                        val ultimaFecha = fechas.firstOrNull() ?: "N/A"
-                        
-                        val latestMeasurements = mediciones.filter { it.fecha == ultimaFecha }
-                        val alertStatus = AlertLogic.getAlertStatus(latestMeasurements)
+                            val latestMeasurements = mediciones.filter { it.fecha == ultimaFecha }
+                            val alertStatus = AlertLogic.getAlertStatus(latestMeasurements)
 
-                        val fechasItems = fechas.map { EntornoFecha(plantaId, plantaNombre, it) }
-                        EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems, alertStatus)
-                    }
+                            val fechasItems = fechas.map { EntornoFecha(plantaId, plantaNombre, it) }
+                            EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems, alertStatus)
+                        }
+                }
+
+                plantHeaders.clear()
+                plantHeaders.addAll(plantasConEntornos.map { planta ->
+                    EntornoListItem.PlantaHeader(planta, isExpanded = planta.plantaId in currentExpandedIds)
+                })
+
+                updateRecyclerView()
+            } catch (e: SQLiteException) {
+                Toast.makeText(this@EntornoActivity, "Error al cargar el historial de entorno", Toast.LENGTH_LONG).show()
             }
-            
-            plantHeaders.clear()
-            plantHeaders.addAll(plantasConEntornos.map { planta ->
-                EntornoListItem.PlantaHeader(planta, isExpanded = planta.plantaId in currentExpandedIds)
-            })
-
-            updateRecyclerView()
         }
     }
 
@@ -111,13 +123,7 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
         entornoAdapter.submitList(displayList)
     }
 
-    override fun onEntornoAdded(entorno: Entorno) {
+    override fun onDialogDataChanged() {
         loadEntornos()
-        Toast.makeText(this, "Medición añadida para ${entorno.plantaNombre}", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onEntornoUpdated(entorno: Entorno) {
-        loadEntornos()
-        Toast.makeText(this, "Medición actualizada", Toast.LENGTH_SHORT).show()
     }
 }

@@ -241,6 +241,20 @@ class DBHelper(context: Context) :
         }
     }
 
+    fun updateEtapa(etapa: Etapa) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_ETAPA_PLANTA_ID, etapa.plantaId)
+            values.put(COLUMN_ETAPA_PLANTA_NOMBRE, etapa.plantaNombre)
+            values.put(COLUMN_ETAPA_ESTADO, etapa.estado)
+            values.put(COLUMN_ETAPA_FECHA, etapa.fecha)
+            val updatedRows = db.update(TABLE_ETAPAS, values, "$COLUMN_ETAPA_ID = ?", arrayOf(etapa.id.toString()))
+            if (updatedRows > 0) {
+                saveHistorialEvento(db, "Etapa Actualizada", "Se actualizó un registro de etapa para '${etapa.plantaNombre}'.")
+            }
+        }
+    }
+
     fun deleteEtapa(etapaId: Int) {
         performDbOperation { db ->
             val deletedRows = db.delete(TABLE_ETAPAS, "$COLUMN_ETAPA_ID = ?", arrayOf(etapaId.toString()))
@@ -303,6 +317,22 @@ class DBHelper(context: Context) :
             val id = db.insert(TABLE_ALIMENTACION, null, values)
             if (id != -1L) {
                  saveHistorialEvento(db, "Alimentación", "Se añadió ${alimentacion.cantidad} ${alimentacion.unidad} de '${alimentacion.insumo}' a '${alimentacion.plantaNombre}'.")
+            }
+        }
+    }
+
+    fun updateAlimentacion(alimentacion: Alimentacion) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_ALIMENTACION_PLANTA_ID, alimentacion.plantaId)
+            values.put(COLUMN_ALIMENTACION_PLANTA_NOMBRE, alimentacion.plantaNombre)
+            values.put(COLUMN_ALIMENTACION_FECHA, alimentacion.fecha)
+            values.put(COLUMN_ALIMENTACION_INSUMO, alimentacion.insumo)
+            values.put(COLUMN_ALIMENTACION_CANTIDAD, alimentacion.cantidad)
+            values.put(COLUMN_ALIMENTACION_UNIDAD, alimentacion.unidad)
+            val updatedRows = db.update(TABLE_ALIMENTACION, values, "$COLUMN_ALIMENTACION_ID = ?", arrayOf(alimentacion.id.toString()))
+            if (updatedRows > 0) {
+                saveHistorialEvento(db, "Alimentación Actualizada", "Se actualizó un registro de alimentación para '${alimentacion.plantaNombre}'.")
             }
         }
     }
@@ -447,6 +477,35 @@ class DBHelper(context: Context) :
         }
         cursor.close()
         return etapas
+    }
+
+    fun getEntornosByPlantaAndFecha(plantaId: Int, fecha: String): List<Entorno> {
+        val entornos = mutableListOf<Entorno>()
+        val db = this.readableDatabase
+        val cursor = db.query(
+            TABLE_ENTORNO,
+            null,
+            "$COLUMN_ENTORNO_PLANTA_ID = ? AND $COLUMN_ENTORNO_FECHA = ?",
+            arrayOf(plantaId.toString(), fecha),
+            null,
+            null,
+            "$COLUMN_ENTORNO_ID DESC"
+        )
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_ID))
+                val pId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_NOMBRE))
+                val f = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_FECHA))
+                val tipo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_TIPO))
+                val valor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_VALOR))
+                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_UNIDAD))
+                entornos.add(Entorno(id, pId, plantaNombre, f, tipo, valor, unidad))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return entornos
     }
 
     fun getAllEntornos(): List<Entorno> {

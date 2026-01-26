@@ -1,14 +1,19 @@
 package edu.istea
 
+import android.database.sqlite.SQLiteException
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import edu.istea.adapter.EntornoDetalleAdapter
 import edu.istea.dao.DBHelper
 import edu.istea.model.Entorno
 import edu.istea.views.AddEntornoDialogFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class EntornoDetalleActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntornoDialogListener {
 
@@ -42,30 +47,48 @@ class EntornoDetalleActivity : AppCompatActivity(), AddEntornoDialogFragment.Add
     }
 
     private fun handleModify(entorno: Entorno) {
-        val plantas = dbHelper.getAllPlantas()
-        val dialog = AddEntornoDialogFragment.newInstance(plantas, entorno)
-        dialog.show(supportFragmentManager, "ModifyEntornoDialogFragment")
+        lifecycleScope.launch {
+            try {
+                val plantas = withContext(Dispatchers.IO) {
+                    dbHelper.getAllPlantas()
+                }
+                val dialog = AddEntornoDialogFragment.newInstance(plantas, entorno)
+                dialog.show(supportFragmentManager, "ModifyEntornoDialogFragment")
+            } catch (e: SQLiteException) {
+                Toast.makeText(this@EntornoDetalleActivity, "Error al acceder a la base de datos", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun handleDelete(entorno: Entorno) {
-        dbHelper.deleteEntorno(entorno.id)
-        loadMediciones()
-        Toast.makeText(this, "Medición eliminada", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    dbHelper.deleteEntorno(entorno.id)
+                }
+                loadMediciones()
+                Toast.makeText(this@EntornoDetalleActivity, "Medición eliminada", Toast.LENGTH_SHORT).show()
+            } catch (e: SQLiteException) {
+                Toast.makeText(this@EntornoDetalleActivity, "Error al eliminar la medición", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun loadMediciones() {
-        val mediciones = dbHelper.getAllEntornos().filter { it.plantaId == plantaId && it.fecha == fecha }
-        entornoDetalleAdapter.submitList(mediciones)
+        lifecycleScope.launch {
+            try {
+                val mediciones = withContext(Dispatchers.IO) {
+                    dbHelper.getEntornosByPlantaAndFecha(plantaId, fecha)
+                }
+                entornoDetalleAdapter.submitList(mediciones)
+            } catch (e: SQLiteException) {
+                Toast.makeText(this@EntornoDetalleActivity, "Error al cargar las mediciones", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
-    override fun onEntornoAdded(entorno: Entorno) {
-        // This screen only edits/deletes, so this method will not be called.
-    }
-
-    override fun onEntornoUpdated(entorno: Entorno) {
-        dbHelper.updateEntorno(entorno)
+    override fun onDialogDataChanged() {
         loadMediciones()
-        Toast.makeText(this, "Medición actualizada", Toast.LENGTH_SHORT).show()
     }
 
     companion object {

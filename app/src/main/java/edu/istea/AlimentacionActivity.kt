@@ -35,7 +35,7 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
         val fabAddAlimentacion: FloatingActionButton = findViewById(R.id.fab_add_alimentacion)
         fabAddAlimentacion.setOnClickListener {
             val plantas = dbHelper.getAllPlantas()
-            val dialog = AddAlimentacionDialogFragment(plantas)
+            val dialog = AddAlimentacionDialogFragment.newInstance(plantas)
             dialog.show(supportFragmentManager, "AddAlimentacionDialogFragment")
         }
 
@@ -43,8 +43,9 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
     }
 
     private fun handleModify(alimentacion: Alimentacion) {
-        // TODO: Implementar la modificación de un registro de alimentación
-        Toast.makeText(this, "Modificar alimentación para ${alimentacion.plantaNombre}", Toast.LENGTH_SHORT).show()
+        val plantas = dbHelper.getAllPlantas()
+        val dialog = AddAlimentacionDialogFragment.newInstance(plantas, alimentacion)
+        dialog.show(supportFragmentManager, "ModifyAlimentacionDialogFragment")
     }
 
     private fun handleDelete(alimentacion: Alimentacion) {
@@ -62,5 +63,11 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
         dbHelper.saveAlimentacion(alimentacion)
         loadAlimentacion()
         Toast.makeText(this, "Alimentación añadida para ${alimentacion.plantaNombre}", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onAlimentacionUpdated(alimentacion: Alimentacion) {
+        // TODO: Implement dbHelper.updateAlimentacion(alimentacion)
+        loadAlimentacion()
+        Toast.makeText(this, "Registro de alimentación actualizado", Toast.LENGTH_SHORT).show()
     }
 }

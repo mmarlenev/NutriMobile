@@ -35,7 +35,7 @@ class EtapasActivity : AppCompatActivity(), AddEtapaDialogFragment.AddEtapaDialo
         val fabAddEtapa: FloatingActionButton = findViewById(R.id.fab_add_etapa)
         fabAddEtapa.setOnClickListener {
             val plantas = dbHelper.getAllPlantas()
-            val dialog = AddEtapaDialogFragment(plantas)
+            val dialog = AddEtapaDialogFragment.newInstance(plantas)
             dialog.show(supportFragmentManager, "AddEtapaDialogFragment")
         }
         
@@ -43,14 +43,15 @@ class EtapasActivity : AppCompatActivity(), AddEtapaDialogFragment.AddEtapaDialo
     }
 
     private fun handleModify(etapa: Etapa) {
-        // TODO: Implementar la modificación de una etapa
-        Toast.makeText(this, "Modificar etapa: ${etapa.estado}", Toast.LENGTH_SHORT).show()
+        val plantas = dbHelper.getAllPlantas()
+        val dialog = AddEtapaDialogFragment.newInstance(plantas, etapa)
+        dialog.show(supportFragmentManager, "ModifyEtapaDialogFragment")
     }
 
     private fun handleDelete(etapa: Etapa) {
         dbHelper.deleteEtapa(etapa.id)
         loadEtapas()
-        Toast.makeText(this, "Etapa eliminada", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Registro eliminado", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadEtapas() {
@@ -61,6 +62,12 @@ class EtapasActivity : AppCompatActivity(), AddEtapaDialogFragment.AddEtapaDialo
     override fun onEtapaAdded(etapa: Etapa) {
         dbHelper.saveEtapa(etapa)
         loadEtapas()
-        Toast.makeText(this, "Etapa añadida: ${etapa.estado}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Registro añadido", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onEtapaUpdated(etapa: Etapa) {
+        dbHelper.updateEtapa(etapa)
+        loadEtapas()
+        Toast.makeText(this, "Registro actualizado", Toast.LENGTH_SHORT).show()
     }
 }

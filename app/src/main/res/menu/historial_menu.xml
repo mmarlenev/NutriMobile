@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_filter"
-        android:icon="@android:drawable/ic_menu_search"
+        android:icon="@drawable/ic_menu_search_white"
         android:title="Filtrar"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_delete_all"
-        android:icon="@android:drawable/ic_menu_delete"
+        android:icon="@drawable/ic_menu_delete_white"
         android:title="Borrar Historial"
         app:showAsAction="ifRoom" />
 </menu>

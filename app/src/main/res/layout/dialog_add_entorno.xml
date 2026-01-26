@@ -41,6 +41,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:inputType="numberDecimal"
                 android:hint="Valor" />
 
             <TextView
@@ -62,7 +63,9 @@
     <DatePicker
         android:id="@+id/dp_fecha_entorno"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="150dp"
+        android:datePickerMode="spinner"
+        android:calendarViewShown="false"
         android:layout_marginTop="16dp" />
 
 </LinearLayout>
