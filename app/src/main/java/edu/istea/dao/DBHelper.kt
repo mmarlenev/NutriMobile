@@ -130,7 +130,33 @@ class DBHelper(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        Log.w("DBHelper", "Upgrading database from version $oldVersion to $newVersion, which will destroy all old data")
+        Log.w("DBHelper", "Upgrading database from version $oldVersion to $newVersion.")
+
+        // Using a 'while' loop to handle each version upgrade sequentially.
+        // This ensures that users on any old version get all the updates correctly.
+        var upgradeTo = oldVersion + 1
+        while (upgradeTo <= newVersion) {
+            when (upgradeTo) {
+                19 -> {
+                    // Example for a future upgrade to version 19:
+                    // Log.i("DBHelper", "Applying migration for version 19...")
+                    // db.execSQL("ALTER TABLE $TABLE_PLANTAS ADD COLUMN new_column TEXT;")
+                }
+                20 -> {
+                    // Example for a future upgrade to version 20:
+                    // Log.i("DBHelper", "Applying migration for version 20...")
+                    // db.execSQL("CREATE TABLE ...")
+                }
+                // Add more cases here for future database versions.
+            }
+            upgradeTo++
+        }
+
+        // IMPORTANT: If you are in early development and don't need to preserve data,
+        // you can uncomment the block below to simply drop and recreate the database.
+        // Be aware this will delete ALL user data.
+        /*
+        Log.w("DBHelper", "Destroying all old data.")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USER")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PLANTAS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_ETAPAS")
@@ -138,6 +164,7 @@ class DBHelper(context: Context) :
         db.execSQL("DROP TABLE IF EXISTS $TABLE_ALIMENTACION")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_HISTORIAL")
         onCreate(db)
+        */
     }
 
     private fun getCurrentDate(): String {
