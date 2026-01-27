@@ -77,7 +77,7 @@ class AddAlimentacionDialogFragment : DialogFragment() {
             Toast.makeText(requireContext(), "Debe crear al menos una planta primero", Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         val cantidadStr = cantidadEditText.text.toString()
         if (cantidadStr.isBlank()) {
             Toast.makeText(requireContext(), "La cantidad no puede estar vacía", Toast.LENGTH_SHORT).show()
@@ -126,8 +126,19 @@ class AddAlimentacionDialogFragment : DialogFragment() {
         if (shouldDismiss) {
             dismiss()
         } else {
+            // Clear the quantity field
             cantidadEditText.setText("")
-            insumoSpinner.setSelection(0)
+
+            // Advance to the next insumo type
+            val currentPosition = insumoSpinner.selectedItemPosition
+            val totalItems = insumoSpinner.adapter.count
+            if (totalItems > 0) {
+                val nextPosition = (currentPosition + 1) % totalItems
+                insumoSpinner.setSelection(nextPosition)
+            }
+
+            // Request focus on the quantity field for faster typing
+            cantidadEditText.requestFocus()
         }
     }
 

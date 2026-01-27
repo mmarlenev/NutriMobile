@@ -142,7 +142,7 @@ class AddEntornoDialogFragment : DialogFragment() {
                     dbHelper.updateEntorno(entorno)
                 }
             }
-            
+
             (activity as? AddEntornoDialogListener)?.onDialogDataChanged()
 
             val toastMessage = when {
@@ -155,8 +155,21 @@ class AddEntornoDialogFragment : DialogFragment() {
             if (shouldDismiss) {
                 dismiss()
             } else {
-                tipoSpinner.setSelection(0)
+                // Clear value fields
                 valorEditText.setText("")
+                if (valorNivelSpinner.adapter?.count ?: 0 > 0) {
+                    valorNivelSpinner.setSelection(0)
+                }
+
+                // Advance to the next measurement type
+                val currentPosition = tipoSpinner.selectedItemPosition
+                val totalItems = tipoSpinner.adapter.count
+                if (totalItems > 0) {
+                    val nextPosition = (currentPosition + 1) % totalItems
+                    tipoSpinner.setSelection(nextPosition)
+                }
+
+                valorEditText.requestFocus()
             }
         }
     }

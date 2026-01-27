@@ -15,6 +15,8 @@ import edu.istea.adapter.EntornoListItem
 import edu.istea.adapter.EntornoPlanta
 import edu.istea.dao.DBHelper
 import edu.istea.logic.AlertLogic
+import edu.istea.logic.AlertState
+import edu.istea.logic.AlertStatus
 import edu.istea.model.Planta
 import edu.istea.views.AddEntornoDialogFragment
 import kotlinx.coroutines.Dispatchers
@@ -92,8 +94,7 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
                             val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
                             val ultimaFecha = fechas.firstOrNull() ?: "N/A"
 
-                            val latestMeasurements = mediciones.filter { it.fecha == ultimaFecha }
-                            val alertStatus = AlertLogic.getAlertStatus(latestMeasurements)
+                            val alertStatus = AlertStatus(AlertState.NORMAL, "")
 
                             val fechasItems = fechas.map { EntornoFecha(plantaId, plantaNombre, it) }
                             EntornoPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems, alertStatus)
