@@ -1,8 +1,14 @@
 package edu.istea
 
+import android.app.Activity
 import android.content.Intent
+import android.database.sqlite.SQLiteException
+import android.net.Uri
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,12 +24,24 @@ import edu.istea.views.AddAlimentacionDialogFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.AddAlimentacionDialogListener {
 
     private lateinit var alimentacionAdapter: AlimentacionGroupedAdapter
     private lateinit var dbHelper: DBHelper
     private val plantHeaders = mutableListOf<AlimentacionListItem.PlantaHeader>()
+
+    private val createCsvLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            it.data?.data?.let { uri ->
+                writeCsvData(uri)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +73,61 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.alimentacion_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_export_csv -> {
+                exportAlimentacionToCsv()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun exportAlimentacionToCsv() {
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileName = "Alimentacion_$timeStamp.csv"
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/csv"
+            putExtra(Intent.EXTRA_TITLE, fileName)
+        }
+        createCsvLauncher.launch(intent)
+    }
+
+    private fun writeCsvData(uri: Uri) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    val allAlimentacion = dbHelper.getAllAlimentacion()
+                    val writer = outputStream.bufferedWriter()
+                    // Header
+                    writer.write("ID,Planta,Fecha,Insumo,Cantidad,Unidad\n")
+                    // Data
+                    allAlimentacion.forEach {
+                        writer.write("${it.id},${it.plantaNombre},${it.fecha},${it.insumo},${it.cantidad},${it.unidad}\n")
+                    }
+                    writer.flush()
+                }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@AlimentacionActivity, "Exportado a CSV con éxito", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: IOException) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@AlimentacionActivity, "Error al exportar: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: SQLiteException) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@AlimentacionActivity, "Error en la base de datos al exportar", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         loadAlimentacion()
@@ -79,7 +152,7 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
     private fun loadAlimentacion() {
         lifecycleScope.launch(Dispatchers.Main) {
             val currentExpandedIds = plantHeaders.filter { it.isExpanded }.map { it.planta.plantaId }.toSet()
-            
+
             val plantasConAlimentacion = withContext(Dispatchers.IO) {
                 val allAlimentacion = dbHelper.getAllAlimentacion()
                 allAlimentacion.groupBy { it.plantaId }
@@ -87,7 +160,7 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
                         val plantaNombre = alimentaciones.first().plantaNombre
                         val fechas = alimentaciones.map { it.fecha }.distinct().sortedDescending()
                         val ultimaFecha = fechas.firstOrNull() ?: "N/A"
-                        
+
                         val fechasItems = fechas.map { AlimentacionFecha(plantaId, plantaNombre, it) }
                         AlimentacionPlanta(plantaId, plantaNombre, ultimaFecha, fechasItems)
                     }
