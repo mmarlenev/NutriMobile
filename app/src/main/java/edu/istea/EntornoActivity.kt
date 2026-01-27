@@ -110,10 +110,10 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
                     val allEntornos = dbHelper.getAllEntornos()
                     val writer = outputStream.bufferedWriter()
                     // Header
-                    writer.write("ID,Planta,Fecha,Tipo,Valor,Unidad\n")
+                    writer.write("Evento_ID,Planta_ID,Planta,Fecha,Tipo,Valor,Unidad\n")
                     // Data
                     allEntornos.forEach {
-                        writer.write("${it.id},${it.plantaNombre},${it.fecha},${it.tipo},${it.valor},${it.unidad}\n")
+                        writer.write("${it.id},${it.plantaId},${it.plantaNombre},${it.fecha},${it.tipo},${it.valor},${it.unidad}\n")
                     }
                     writer.flush()
                 }

@@ -106,10 +106,10 @@ class AlimentacionActivity : AppCompatActivity(), AddAlimentacionDialogFragment.
                     val allAlimentacion = dbHelper.getAllAlimentacion()
                     val writer = outputStream.bufferedWriter()
                     // Header
-                    writer.write("ID,Planta,Fecha,Insumo,Cantidad,Unidad\n")
+                    writer.write("Evento_ID,Planta_ID,Planta,Fecha,Insumo,Cantidad,Unidad\n")
                     // Data
                     allAlimentacion.forEach {
-                        writer.write("${it.id},${it.plantaNombre},${it.fecha},${it.insumo},${it.cantidad},${it.unidad}\n")
+                        writer.write("${it.id},${it.plantaId},${it.plantaNombre},${it.fecha},${it.insumo},${it.cantidad},${it.unidad}\n")
                     }
                     writer.flush()
                 }
