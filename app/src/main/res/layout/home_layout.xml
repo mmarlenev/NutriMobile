@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="16dp">
 
     <Button
@@ -15,24 +14,28 @@
         android:id="@+id/btn_plantas"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_historial"
         android:text="Plantas" />
-
-    <Button
-        android:id="@+id/btn_etapas"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Etapas" />
 
     <Button
         android:id="@+id/btn_entorno"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_plantas"
         android:text="Entorno" />
 
     <Button
         android:id="@+id/btn_alimentacion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_entorno"
         android:text="Alimentación" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/btn_eventos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_alimentacion"
+        android:text="Eventos" />
+
+</RelativeLayout>

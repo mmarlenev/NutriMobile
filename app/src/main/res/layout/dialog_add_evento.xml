@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Añadir Evento"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categoría de Evento:"
+        android:textAppearance="?attr/textAppearanceCaption" />
+
+    <Spinner
+        android:id="@+id/spinner_sujeto_evento"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tv_planta_evento_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Elegir Planta:"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spinner_planta_evento"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_suceso_evento_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textAppearance="?attr/textAppearanceCaption" />
+
+    <Spinner
+        android:id="@+id/spinner_suceso_evento"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tv_mantenimiento_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Tipo de Mantenimiento:"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spinner_mantenimiento"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_potencia_luz_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Potencia de Luz (%):"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spinner_potencia_luz"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_ventilador_modo_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Modo de Uso:"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/spinner_ventilador_modo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Fecha:"
+        android:textAppearance="?attr/textAppearanceCaption" />
+
+    <DatePicker
+        android:id="@+id/dp_fecha_evento"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:datePickerMode="spinner"
+        android:calendarViewShown="false" />
+
+</LinearLayout>

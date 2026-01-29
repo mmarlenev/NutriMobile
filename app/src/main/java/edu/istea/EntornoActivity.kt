@@ -162,7 +162,8 @@ class EntornoActivity : AppCompatActivity(), AddEntornoDialogFragment.AddEntorno
                     allEntornos.groupBy { it.plantaId }
                         .map { (plantaId, mediciones) ->
                             val plantaNombre = mediciones.first().plantaNombre
-                            val fechas = mediciones.map { it.fecha }.distinct().sortedDescending()
+                            val fechas = mediciones.map { it.fecha }.distinct()
+                                .sortedByDescending { SimpleDateFormat("d/M/yyyy", Locale.getDefault()).parse(it) }
                             val ultimaFecha = fechas.firstOrNull() ?: "N/A"
 
                             val alertStatus = AlertStatus(AlertState.NORMAL, "")

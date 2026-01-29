@@ -13,9 +13,9 @@ class Home : AppCompatActivity() {
 
         val btnHistorial: Button = findViewById(R.id.btn_historial)
         val btnPlantas: Button = findViewById(R.id.btn_plantas)
-        val btnEtapas: Button = findViewById(R.id.btn_etapas)
         val btnEntorno: Button = findViewById(R.id.btn_entorno)
         val btnAlimentacion: Button = findViewById(R.id.btn_alimentacion)
+        val btnEventos: Button = findViewById(R.id.btn_eventos)
 
         btnHistorial.setOnClickListener {
             startActivity(Intent(this, HistorialActivity::class.java))
@@ -25,16 +25,16 @@ class Home : AppCompatActivity() {
             startActivity(Intent(this, PlantasActivity::class.java))
         }
 
-        btnEtapas.setOnClickListener {
-             startActivity(Intent(this, EtapasActivity::class.java))
-        }
-
         btnEntorno.setOnClickListener {
             startActivity(Intent(this, EntornoActivity::class.java))
         }
 
         btnAlimentacion.setOnClickListener {
             startActivity(Intent(this, AlimentacionActivity::class.java))
+        }
+
+        btnEventos.setOnClickListener {
+            startActivity(Intent(this, EventoActivity::class.java))
         }
     }
 }

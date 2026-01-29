@@ -9,7 +9,7 @@ import android.util.Log
 import androidx.core.database.sqlite.transaction
 import edu.istea.model.Alimentacion
 import edu.istea.model.Entorno
-import edu.istea.model.Etapa
+import edu.istea.model.Evento
 import edu.istea.model.HistorialEvento
 import edu.istea.model.Planta
 import edu.istea.model.User
@@ -23,7 +23,7 @@ class DBHelper(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "MisRegistros.db"
-        private const val DATABASE_VERSION = 18 // Incremented version to force clean upgrade
+        private const val DATABASE_VERSION = 19 // Incremented version to force clean upgrade
 
         // Define all table and column names as constants
         private const val TABLE_USER = "users"
@@ -38,13 +38,6 @@ class DBHelper(context: Context) :
         private const val COLUMN_PLANTA_NOMBRE = "nombre"
         private const val COLUMN_PLANTA_GENETICA = "genetica"
         private const val COLUMN_PLANTA_FECHA_ORIGEN = "fecha_origen"
-
-        private const val TABLE_ETAPAS = "etapas"
-        private const val COLUMN_ETAPA_ID = "id"
-        private const val COLUMN_ETAPA_PLANTA_ID = "planta_id"
-        private const val COLUMN_ETAPA_PLANTA_NOMBRE = "planta_nombre"
-        private const val COLUMN_ETAPA_ESTADO = "estado"
-        private const val COLUMN_ETAPA_FECHA = "fecha"
 
         private const val TABLE_ENTORNO = "entorno"
         private const val COLUMN_ENTORNO_ID = "id"
@@ -63,6 +56,13 @@ class DBHelper(context: Context) :
         private const val COLUMN_ALIMENTACION_INSUMO = "insumo"
         private const val COLUMN_ALIMENTACION_CANTIDAD = "cantidad"
         private const val COLUMN_ALIMENTACION_UNIDAD = "unidad"
+
+        private const val TABLE_EVENTOS = "eventos"
+        private const val COLUMN_EVENTO_ID = "id"
+        private const val COLUMN_EVENTO_SUJETO = "sujeto"
+        private const val COLUMN_EVENTO_SUCESO = "suceso"
+        private const val COLUMN_EVENTO_FECHA = "fecha"
+        private const val COLUMN_EVENTO_PLANTA_ID = "planta_id"
 
         private const val TABLE_HISTORIAL = "historial"
         private const val COLUMN_HISTORIAL_ID = "id"
@@ -89,15 +89,6 @@ class DBHelper(context: Context) :
             )"""
         db.execSQL(createTablePlantas)
 
-        val createTableEtapas = """CREATE TABLE $TABLE_ETAPAS(
-                $COLUMN_ETAPA_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                $COLUMN_ETAPA_PLANTA_ID INTEGER,
-                $COLUMN_ETAPA_PLANTA_NOMBRE TEXT,
-                $COLUMN_ETAPA_ESTADO TEXT,
-                $COLUMN_ETAPA_FECHA TEXT
-            )"""
-        db.execSQL(createTableEtapas)
-
         val createTableEntorno = """CREATE TABLE $TABLE_ENTORNO(
                 $COLUMN_ENTORNO_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 $COLUMN_ENTORNO_PLANTA_ID INTEGER,
@@ -120,6 +111,15 @@ class DBHelper(context: Context) :
             )"""
         db.execSQL(createTableAlimentacion)
 
+        val createTableEventos = """CREATE TABLE $TABLE_EVENTOS(
+                $COLUMN_EVENTO_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_EVENTO_SUJETO TEXT,
+                $COLUMN_EVENTO_SUCESO TEXT,
+                $COLUMN_EVENTO_FECHA TEXT,
+                $COLUMN_EVENTO_PLANTA_ID INTEGER
+            )"""
+        db.execSQL(createTableEventos)
+
         val createTableHistorial = """CREATE TABLE $TABLE_HISTORIAL(
                 $COLUMN_HISTORIAL_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 $COLUMN_HISTORIAL_FECHA TEXT,
@@ -132,39 +132,22 @@ class DBHelper(context: Context) :
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         Log.w("DBHelper", "Upgrading database from version $oldVersion to $newVersion.")
 
-        // Using a 'while' loop to handle each version upgrade sequentially.
-        // This ensures that users on any old version get all the updates correctly.
         var upgradeTo = oldVersion + 1
         while (upgradeTo <= newVersion) {
             when (upgradeTo) {
                 19 -> {
-                    // Example for a future upgrade to version 19:
-                    // Log.i("DBHelper", "Applying migration for version 19...")
-                    // db.execSQL("ALTER TABLE $TABLE_PLANTAS ADD COLUMN new_column TEXT;")
+                    val createTableEventos = """CREATE TABLE $TABLE_EVENTOS(
+                            $COLUMN_EVENTO_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            $COLUMN_EVENTO_SUJETO TEXT,
+                            $COLUMN_EVENTO_SUCESO TEXT,
+                            $COLUMN_EVENTO_FECHA TEXT,
+                            $COLUMN_EVENTO_PLANTA_ID INTEGER
+                        )"""
+                    db.execSQL(createTableEventos)
                 }
-                20 -> {
-                    // Example for a future upgrade to version 20:
-                    // Log.i("DBHelper", "Applying migration for version 20...")
-                    // db.execSQL("CREATE TABLE ...")
-                }
-                // Add more cases here for future database versions.
             }
             upgradeTo++
         }
-
-        // IMPORTANT: If you are in early development and don't need to preserve data,
-        // you can uncomment the block below to simply drop and recreate the database.
-        // Be aware this will delete ALL user data.
-        /*
-        Log.w("DBHelper", "Destroying all old data.")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_USER")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_PLANTAS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_ETAPAS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_ENTORNO")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_ALIMENTACION")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_HISTORIAL")
-        onCreate(db)
-        */
     }
 
     private fun getCurrentDate(): String {
@@ -188,6 +171,77 @@ class DBHelper(context: Context) :
         } catch (e: Exception) {
             Log.e("DBHelper", "Database operation failed", e)
             null
+        }
+    }
+
+    fun saveEvento(evento: Evento): Long? {
+        return performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_EVENTO_SUJETO, evento.sujeto)
+            values.put(COLUMN_EVENTO_SUCESO, evento.suceso)
+            values.put(COLUMN_EVENTO_FECHA, evento.fecha)
+            if (evento.plantaId != null) {
+                values.put(COLUMN_EVENTO_PLANTA_ID, evento.plantaId)
+            } else {
+                values.putNull(COLUMN_EVENTO_PLANTA_ID)
+            }
+            val id = db.insert(TABLE_EVENTOS, null, values)
+            if (id != -1L) {
+                val descripcion = if (evento.plantaId != null) {
+                    "Evento para planta ID ${evento.plantaId}: ${evento.sujeto} - ${evento.suceso}"
+                } else {
+                    "Evento de cultivo: ${evento.sujeto} - ${evento.suceso}"
+                }
+                saveHistorialEvento(db, "Evento", descripcion)
+            }
+            id
+        }
+    }
+
+    fun updateEvento(evento: Evento) {
+        performDbOperation { db ->
+            val values = ContentValues()
+            values.put(COLUMN_EVENTO_SUJETO, evento.sujeto)
+            values.put(COLUMN_EVENTO_SUCESO, evento.suceso)
+            values.put(COLUMN_EVENTO_FECHA, evento.fecha)
+            if (evento.plantaId != null) {
+                values.put(COLUMN_EVENTO_PLANTA_ID, evento.plantaId)
+            } else {
+                values.putNull(COLUMN_EVENTO_PLANTA_ID)
+            }
+            val updatedRows = db.update(TABLE_EVENTOS, values, "$COLUMN_EVENTO_ID = ?", arrayOf(evento.id.toString()))
+            if (updatedRows > 0) {
+                val descripcion = if (evento.plantaId != null) {
+                    "Evento para planta ID ${evento.plantaId} actualizado: ${evento.sujeto} - ${evento.suceso}"
+                } else {
+                    "Evento de cultivo actualizado: ${evento.sujeto} - ${evento.suceso}"
+                }
+                saveHistorialEvento(db, "Evento Actualizado", descripcion)
+            }
+        }
+    }
+
+    fun deleteEvento(eventoId: Int) {
+        performDbOperation { db ->
+            var evento: Evento? = null
+            val cursor = db.query(TABLE_EVENTOS, null, "$COLUMN_EVENTO_ID = ?", arrayOf(eventoId.toString()), null, null, null)
+            if (cursor.moveToFirst()) {
+                val sujeto = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_SUJETO))
+                val suceso = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_SUCESO))
+                val plantaId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_PLANTA_ID))
+                evento = Evento(id = eventoId, sujeto = sujeto, suceso = suceso, fecha = "", plantaId = plantaId)
+            }
+            cursor.close()
+
+            val deletedRows = db.delete(TABLE_EVENTOS, "$COLUMN_EVENTO_ID = ?", arrayOf(eventoId.toString()))
+            if (deletedRows > 0 && evento != null) {
+                val descripcion = if (evento.plantaId != null && evento.plantaId != 0) {
+                    "Evento para planta ID ${evento.plantaId} borrado: ${evento.sujeto} - ${evento.suceso}"
+                } else {
+                    "Evento de cultivo borrado: ${evento.sujeto} - ${evento.suceso}"
+                }
+                saveHistorialEvento(db, "Evento Borrado", descripcion)
+            }
         }
     }
 
@@ -240,50 +294,12 @@ class DBHelper(context: Context) :
 
     fun deletePlanta(plantaId: Int, plantaNombre: String) {
         performDbOperation { db ->
-            db.delete(TABLE_ETAPAS, "$COLUMN_ETAPA_PLANTA_ID = ?", arrayOf(plantaId.toString()))
             db.delete(TABLE_ENTORNO, "$COLUMN_ENTORNO_PLANTA_ID = ?", arrayOf(plantaId.toString()))
             db.delete(TABLE_ALIMENTACION, "$COLUMN_ALIMENTACION_PLANTA_ID = ?", arrayOf(plantaId.toString()))
 
             val deletedRows = db.delete(TABLE_PLANTAS, "$COLUMN_PLANTA_ID = ?", arrayOf(plantaId.toString()))
             if (deletedRows > 0) {
                 saveHistorialEvento(db, "Planta Eliminada", "Se eliminó la planta '${plantaNombre}' y todos sus eventos.")
-            }
-        }
-    }
-
-    fun saveEtapa(etapa: Etapa) {
-         performDbOperation { db ->
-            val values = ContentValues()
-            values.put(COLUMN_ETAPA_PLANTA_ID, etapa.plantaId)
-            values.put(COLUMN_ETAPA_PLANTA_NOMBRE, etapa.plantaNombre)
-            values.put(COLUMN_ETAPA_ESTADO, etapa.estado)
-            values.put(COLUMN_ETAPA_FECHA, etapa.fecha)
-            val id = db.insert(TABLE_ETAPAS, null, values)
-             if (id != -1L) {
-                saveHistorialEvento(db, "Etapa", "'${etapa.plantaNombre}' cambió a la etapa '${etapa.estado}'.")
-             }
-        }
-    }
-
-    fun updateEtapa(etapa: Etapa) {
-        performDbOperation { db ->
-            val values = ContentValues()
-            values.put(COLUMN_ETAPA_PLANTA_ID, etapa.plantaId)
-            values.put(COLUMN_ETAPA_PLANTA_NOMBRE, etapa.plantaNombre)
-            values.put(COLUMN_ETAPA_ESTADO, etapa.estado)
-            values.put(COLUMN_ETAPA_FECHA, etapa.fecha)
-            val updatedRows = db.update(TABLE_ETAPAS, values, "$COLUMN_ETAPA_ID = ?", arrayOf(etapa.id.toString()))
-            if (updatedRows > 0) {
-                saveHistorialEvento(db, "Etapa Actualizada", "Se actualizó un registro de etapa para '${etapa.plantaNombre}'.")
-            }
-        }
-    }
-
-    fun deleteEtapa(etapaId: Int) {
-        performDbOperation { db ->
-            val deletedRows = db.delete(TABLE_ETAPAS, "$COLUMN_ETAPA_ID = ?", arrayOf(etapaId.toString()))
-            if (deletedRows > 0) {
-                saveHistorialEvento(db, "Etapa Eliminada", "Se eliminó un registro de etapa.")
             }
         }
     }
@@ -368,6 +384,64 @@ class DBHelper(context: Context) :
                 saveHistorialEvento(db, "Alimentación Eliminada", "Se eliminó un registro de alimentación.")
             }
         }
+    }
+
+    fun getAlimentacionByPlantaAndFecha(plantaId: Int, fecha: String): List<Alimentacion> {
+        val alimentaciones = mutableListOf<Alimentacion>()
+        val db = this.readableDatabase
+        val cursor = db.query(
+            TABLE_ALIMENTACION,
+            null,
+            "$COLUMN_ALIMENTACION_PLANTA_ID = ? AND $COLUMN_ALIMENTACION_FECHA = ?",
+            arrayOf(plantaId.toString(), fecha),
+            null,
+            null,
+            "$COLUMN_ALIMENTACION_ID DESC"
+        )
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_ID))
+                val pId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_NOMBRE))
+                val f = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_FECHA))
+                val insumo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_INSUMO))
+                val cantidad = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_CANTIDAD))
+                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_UNIDAD))
+                alimentaciones.add(Alimentacion(id, pId, plantaNombre, f, insumo, cantidad, unidad))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return alimentaciones
+    }
+
+    fun getEntornosByPlantaAndFecha(plantaId: Int, fecha: String): List<Entorno> {
+        val entornos = mutableListOf<Entorno>()
+        val db = this.readableDatabase
+        val cursor = db.query(
+            TABLE_ENTORNO,
+            null,
+            "$COLUMN_ENTORNO_PLANTA_ID = ? AND $COLUMN_ENTORNO_FECHA = ?",
+            arrayOf(plantaId.toString(), fecha),
+            null,
+            null,
+            "$COLUMN_ENTORNO_ID DESC"
+        )
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_ID))
+                val pId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_ID))
+                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_NOMBRE))
+                val f = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_FECHA))
+                val tipo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_TIPO))
+                val valor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_VALOR))
+                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_UNIDAD))
+                entornos.add(Entorno(id, pId, plantaNombre, f, tipo, valor, unidad))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return entornos
     }
 
     fun clearHistorial() {
@@ -485,82 +559,6 @@ class DBHelper(context: Context) :
         return plantas
     }
 
-    fun getAllEtapas(): List<Etapa> {
-        val etapas = mutableListOf<Etapa>()
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_ETAPAS ORDER BY $COLUMN_ETAPA_ID DESC", null)
-        if (cursor.moveToFirst()) {
-            do {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_ID))
-                val plantaId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_PLANTA_ID))
-                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_PLANTA_NOMBRE))
-                val estado = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_ESTADO))
-                val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ETAPA_FECHA))
-                etapas.add(Etapa(id, plantaId, plantaNombre, estado, fecha))
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-        return etapas
-    }
-
-    fun getEntornosByPlantaAndFecha(plantaId: Int, fecha: String): List<Entorno> {
-        val entornos = mutableListOf<Entorno>()
-        val db = this.readableDatabase
-        val cursor = db.query(
-            TABLE_ENTORNO,
-            null,
-            "$COLUMN_ENTORNO_PLANTA_ID = ? AND $COLUMN_ENTORNO_FECHA = ?",
-            arrayOf(plantaId.toString(), fecha),
-            null,
-            null,
-            "$COLUMN_ENTORNO_ID DESC"
-        )
-
-        if (cursor.moveToFirst()) {
-            do {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_ID))
-                val pId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_ID))
-                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_PLANTA_NOMBRE))
-                val f = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_FECHA))
-                val tipo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_TIPO))
-                val valor = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_VALOR))
-                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENTORNO_UNIDAD))
-                entornos.add(Entorno(id, pId, plantaNombre, f, tipo, valor, unidad))
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-        return entornos
-    }
-    
-    fun getAlimentacionByPlantaAndFecha(plantaId: Int, fecha: String): List<Alimentacion> {
-        val alimentaciones = mutableListOf<Alimentacion>()
-        val db = this.readableDatabase
-        val cursor = db.query(
-            TABLE_ALIMENTACION,
-            null,
-            "$COLUMN_ALIMENTACION_PLANTA_ID = ? AND $COLUMN_ALIMENTACION_FECHA = ?",
-            arrayOf(plantaId.toString(), fecha),
-            null,
-            null,
-            "$COLUMN_ALIMENTACION_ID DESC"
-        )
-
-        if (cursor.moveToFirst()) {
-            do {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_ID))
-                val pId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_ID))
-                val plantaNombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_PLANTA_NOMBRE))
-                val f = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_FECHA))
-                val insumo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_INSUMO))
-                val cantidad = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_CANTIDAD))
-                val unidad = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ALIMENTACION_UNIDAD))
-                alimentaciones.add(Alimentacion(id, pId, plantaNombre, f, insumo, cantidad, unidad))
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-        return alimentaciones
-    }
-
     fun getAllEntornos(): List<Entorno> {
         val entornos = mutableListOf<Entorno>()
         val db = this.readableDatabase
@@ -599,6 +597,24 @@ class DBHelper(context: Context) :
         }
         cursor.close()
         return alimentaciones
+    }
+
+    fun getAllEventos(): List<Evento> {
+        val eventos = mutableListOf<Evento>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_EVENTOS ORDER BY $COLUMN_EVENTO_ID DESC", null)
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_ID))
+                val sujeto = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_SUJETO))
+                val suceso = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_SUCESO))
+                val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_FECHA))
+                val plantaId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_EVENTO_PLANTA_ID))
+                eventos.add(Evento(id, sujeto, suceso, fecha, plantaId))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return eventos
     }
 
     fun saveUser(user: User) {
