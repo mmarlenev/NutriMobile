@@ -23,32 +23,31 @@
         android:id="@+id/et_nombre_planta"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:hint="Ej: Tomate Cherry" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Genética:"
+        android:text="Tipo:"
         android:textAppearance="?attr/textAppearanceCaption" />
 
     <RadioGroup
-        android:id="@+id/rg_genetica"
+        android:id="@+id/rg_tipo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
 
         <RadioButton
             android:id="@+id/rb_autofloreciente"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Autofloreciente" />
 
         <RadioButton
             android:id="@+id/rb_fotoperiodica"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Fotoperiódica" />
 
@@ -57,8 +56,20 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Fecha de Origen:"
+        android:text="Etapa:"
+        android:textAppearance="?attr/textAppearanceCaption" />
+
+    <Spinner
+        android:id="@+id/spinner_etapa"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:entries="@array/etapas_array" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fecha:"
         android:textAppearance="?attr/textAppearanceCaption" />
 
     <DatePicker

@@ -7,6 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class Planta(
     val id: Int = 0,
     val nombre: String,
-    val genetica: String,
-    val fechaOrigen: String
+    val tipo: String,
+    val fechaOrigen: String,
+    val etapa: String
 ) : Parcelable

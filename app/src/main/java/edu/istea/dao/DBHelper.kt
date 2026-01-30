@@ -23,7 +23,7 @@ class DBHelper(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "MisRegistros.db"
-        private const val DATABASE_VERSION = 19 // Incremented version to force clean upgrade
+        private const val DATABASE_VERSION = 20 // Incremented version to force clean upgrade
 
         // Define all table and column names as constants
         private const val TABLE_USER = "users"
@@ -38,6 +38,7 @@ class DBHelper(context: Context) :
         private const val COLUMN_PLANTA_NOMBRE = "nombre"
         private const val COLUMN_PLANTA_GENETICA = "genetica"
         private const val COLUMN_PLANTA_FECHA_ORIGEN = "fecha_origen"
+        private const val COLUMN_PLANTA_ETAPA = "etapa"
 
         private const val TABLE_ENTORNO = "entorno"
         private const val COLUMN_ENTORNO_ID = "id"
@@ -85,7 +86,8 @@ class DBHelper(context: Context) :
                 $COLUMN_PLANTA_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 $COLUMN_PLANTA_NOMBRE TEXT,
                 $COLUMN_PLANTA_GENETICA TEXT,
-                $COLUMN_PLANTA_FECHA_ORIGEN TEXT
+                $COLUMN_PLANTA_FECHA_ORIGEN TEXT,
+                $COLUMN_PLANTA_ETAPA TEXT
             )"""
         db.execSQL(createTablePlantas)
 
@@ -144,6 +146,9 @@ class DBHelper(context: Context) :
                             $COLUMN_EVENTO_PLANTA_ID INTEGER
                         )"""
                     db.execSQL(createTableEventos)
+                }
+                20 -> {
+                    db.execSQL("ALTER TABLE $TABLE_PLANTAS ADD COLUMN $COLUMN_PLANTA_ETAPA TEXT NOT NULL DEFAULT ''")
                 }
             }
             upgradeTo++
@@ -270,8 +275,9 @@ class DBHelper(context: Context) :
         performDbOperation { db ->
             val values = ContentValues()
             values.put(COLUMN_PLANTA_NOMBRE, planta.nombre)
-            values.put(COLUMN_PLANTA_GENETICA, planta.genetica)
+            values.put(COLUMN_PLANTA_GENETICA, planta.tipo)
             values.put(COLUMN_PLANTA_FECHA_ORIGEN, planta.fechaOrigen)
+            values.put(COLUMN_PLANTA_ETAPA, planta.etapa)
             val id = db.insert(TABLE_PLANTAS, null, values)
             if (id != -1L) {
                  saveHistorialEvento(db, "Nueva Planta", "Se creó la planta '${planta.nombre}'.")
@@ -283,8 +289,9 @@ class DBHelper(context: Context) :
         performDbOperation { db ->
             val values = ContentValues()
             values.put(COLUMN_PLANTA_NOMBRE, planta.nombre)
-            values.put(COLUMN_PLANTA_GENETICA, planta.genetica)
+            values.put(COLUMN_PLANTA_GENETICA, planta.tipo)
             values.put(COLUMN_PLANTA_FECHA_ORIGEN, planta.fechaOrigen)
+            values.put(COLUMN_PLANTA_ETAPA, planta.etapa)
             val updatedRows = db.update(TABLE_PLANTAS, values, "$COLUMN_PLANTA_ID = ?", arrayOf(planta.id.toString()))
             if (updatedRows > 0) {
                 saveHistorialEvento(db, "Planta Actualizada", "Se actualizó la planta '${planta.nombre}'.")
@@ -455,10 +462,11 @@ class DBHelper(context: Context) :
         val cursor = db.query(TABLE_PLANTAS, null, "$COLUMN_PLANTA_ID = ?", arrayOf(id.toString()), null, null, null)
         if (cursor.moveToFirst()) {
             val nombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_NOMBRE))
-            val genetica = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_GENETICA))
+            val tipo = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_GENETICA))
             val fechaOrigen = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_FECHA_ORIGEN))
+            val etapa = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_ETAPA))
             cursor.close()
-            return Planta(id, nombre, genetica, fechaOrigen)
+            return Planta(id, nombre, tipo, fechaOrigen, etapa)
         }
         cursor.close()
         return null
@@ -552,7 +560,8 @@ class DBHelper(context: Context) :
                 val nombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_NOMBRE))
                 val genetica = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_GENETICA))
                 val fechaOrigen = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_FECHA_ORIGEN))
-                plantas.add(Planta(id, nombre, genetica, fechaOrigen))
+                val etapa = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLANTA_ETAPA))
+                plantas.add(Planta(id, nombre, genetica, fechaOrigen, etapa))
             } while (cursor.moveToNext())
         }
         cursor.close()

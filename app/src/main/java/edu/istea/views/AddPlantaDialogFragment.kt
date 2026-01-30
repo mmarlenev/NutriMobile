@@ -2,10 +2,12 @@ package edu.istea.views
 
 import android.app.Dialog
 import android.os.Bundle
+import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.BundleCompat
@@ -35,15 +37,32 @@ class AddPlantaDialogFragment : DialogFragment() {
         val dbHelper = DBHelper(requireContext())
 
         val nombreEditText = view.findViewById<EditText>(R.id.et_nombre_planta)
-        val geneticaRadioGroup = view.findViewById<RadioGroup>(R.id.rg_genetica)
+        val tipoRadioGroup = view.findViewById<RadioGroup>(R.id.rg_tipo)
+        val etapaSpinner = view.findViewById<Spinner>(R.id.spinner_etapa)
         val fechaOrigenDatePicker = view.findViewById<DatePicker>(R.id.dp_fecha_origen)
+
+        ArrayAdapter.createFromResource(
+            requireContext(),
+            R.array.etapas_array,
+            android.R.layout.simple_spinner_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            etapaSpinner.adapter = adapter
+        }
 
         planta?.let { existingPlanta ->
             nombreEditText.setText(existingPlanta.nombre)
-            when (existingPlanta.genetica) {
+            when (existingPlanta.tipo) {
                 "Autofloreciente" -> view.findViewById<RadioButton>(R.id.rb_autofloreciente).isChecked = true
                 "Fotoperiódica" -> view.findViewById<RadioButton>(R.id.rb_fotoperiodica).isChecked = true
             }
+
+            val etapas = resources.getStringArray(R.array.etapas_array)
+            val etapaPosition = etapas.indexOf(existingPlanta.etapa)
+            if (etapaPosition >= 0) {
+                etapaSpinner.setSelection(etapaPosition)
+            }
+
             val dateParts = existingPlanta.fechaOrigen.split("/")
             fechaOrigenDatePicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
         }
@@ -65,11 +84,17 @@ class AddPlantaDialogFragment : DialogFragment() {
                     return@setOnClickListener
                 }
 
+                val selectedTipoId = tipoRadioGroup.checkedRadioButtonId
+                if (selectedTipoId == -1) {
+                    Toast.makeText(requireContext(), "Debe seleccionar un tipo de planta", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
                 if (dbHelper.plantaNombreExiste(nombre, planta?.id)) {
                     Toast.makeText(requireContext(), "Ya existe una planta con este nombre", Toast.LENGTH_SHORT).show()
                 } else {
-                    val selectedGeneticaId = geneticaRadioGroup.checkedRadioButtonId
-                    val genetica = view.findViewById<RadioButton>(selectedGeneticaId).text.toString()
+                    val tipo = view.findViewById<RadioButton>(selectedTipoId).text.toString()
+                    val etapa = etapaSpinner.selectedItem.toString()
 
                     val day = fechaOrigenDatePicker.dayOfMonth
                     val month = fechaOrigenDatePicker.month
@@ -78,11 +103,11 @@ class AddPlantaDialogFragment : DialogFragment() {
 
                     val result = Bundle()
                     if (planta == null) {
-                        val nuevaPlanta = Planta(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
+                        val nuevaPlanta = Planta(nombre = nombre, tipo = tipo, fechaOrigen = fechaOrigen, etapa = etapa)
                         result.putParcelable("planta", nuevaPlanta)
                         setFragmentResult("requestKey", result)
                     } else {
-                        val plantaActualizada = planta!!.copy(nombre = nombre, genetica = genetica, fechaOrigen = fechaOrigen)
+                        val plantaActualizada = planta!!.copy(nombre = nombre, tipo = tipo, fechaOrigen = fechaOrigen, etapa = etapa)
                         result.putParcelable("planta", plantaActualizada)
                         setFragmentResult("requestKey", result)
                     }

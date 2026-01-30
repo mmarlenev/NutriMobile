@@ -33,7 +33,8 @@ class PlantaAdapter(
         private val onDeleteClick: (Planta) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
         private val nombre: TextView = itemView.findViewById(R.id.tv_planta_nombre)
-        private val info: TextView = itemView.findViewById(R.id.tv_planta_info)
+        private val etapa: TextView = itemView.findViewById(R.id.tv_planta_etapa)
+        private val fecha: TextView = itemView.findViewById(R.id.tv_planta_fecha)
         private val modifyButton: ImageButton = itemView.findViewById(R.id.btn_modificar_planta)
         private val deleteButton: ImageButton = itemView.findViewById(R.id.btn_eliminar_planta)
         private lateinit var currentPlanta: Planta
@@ -57,7 +58,8 @@ class PlantaAdapter(
         fun bind(planta: Planta) {
             currentPlanta = planta
             nombre.text = planta.nombre
-            info.text = "${planta.genetica} - Origen: ${planta.fechaOrigen}"
+            etapa.text = "Etapa: ${planta.etapa}"
+            fecha.text = "Fecha: ${planta.fechaOrigen}"
         }
     }
 }

@@ -18,17 +18,27 @@
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceListItem"
             android:textColor="@color/primary_text"
-            android:layout_toStartOf="@+id/buttons_layout" />
+            android:layout_toStartOf="@id/buttons_layout" />
 
         <TextView
-            android:id="@+id/tv_planta_info"
+            android:id="@+id/tv_planta_etapa"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceListItemSecondary"
             android:textColor="@color/secondary_text"
             android:layout_below="@id/tv_planta_nombre"
-            android:layout_toStartOf="@+id/buttons_layout" />
+            android:layout_toStartOf="@id/buttons_layout" />
+
+        <TextView
+            android:id="@+id/tv_planta_fecha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceListItemSecondary"
+            android:textColor="@color/secondary_text"
+            android:layout_below="@id/tv_planta_etapa"
+            android:layout_toStartOf="@id/buttons_layout" />
 
         <LinearLayout
             android:id="@+id/buttons_layout"

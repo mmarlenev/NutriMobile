@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Mis Plantas</string>
+    <string-array name="etapas_array">
+        <item>Germinación</item>
+        <item>Plántula</item>
+        <item>Vegetativo</item>
+        <item>Floración</item>
+        <item>Cosecha</item>
+    </string-array>
 </resources>
