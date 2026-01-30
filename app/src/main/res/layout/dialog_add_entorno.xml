@@ -10,20 +10,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Entorno"
+        android:text="Añadir Medición de Entorno"
         android:textAppearance="?attr/textAppearanceHeadline6"
         android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Planta"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:layout_marginStart="4dp" />
 
     <Spinner
         android:id="@+id/spinner_planta_entorno"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tipo de Medición"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="16dp" />
+
     <Spinner
         android:id="@+id/spinner_tipo_medicion"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" />
+        android:layout_height="wrap_content" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -60,12 +74,19 @@
 
     </FrameLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fecha"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="16dp" />
+
     <DatePicker
         android:id="@+id/dp_fecha_entorno"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:datePickerMode="spinner"
-        android:calendarViewShown="false"
-        android:layout_marginTop="16dp" />
+        android:calendarViewShown="false" />
 
 </LinearLayout>

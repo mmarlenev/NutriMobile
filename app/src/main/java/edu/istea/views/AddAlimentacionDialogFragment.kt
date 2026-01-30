@@ -23,11 +23,11 @@ class AddAlimentacionDialogFragment : DialogFragment() {
     private var alimentacionToEdit: Alimentacion? = null
 
     private val insumos = listOf(
-        Insumo("Tierra", "g"),
         Insumo("Agua", "ml"),
         Insumo("Fertilizante Vege", "ml"),
         Insumo("Jabón Potásico", "ml"),
-        Insumo("Fertilizante Flora", "ml")
+        Insumo("Fertilizante Flora", "ml"),
+        Insumo("Tierra", "g")
     )
 
     private lateinit var plantaSpinner: Spinner

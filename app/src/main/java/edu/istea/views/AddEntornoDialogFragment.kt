@@ -33,7 +33,9 @@ class AddEntornoDialogFragment : DialogFragment() {
         TipoMedicion("Humedad de Tierra", "", isNumeric = false, levels = listOf("DRY+", "DRY", "NOR", "WET", "WET+")),
         TipoMedicion("Luz a Hoja", "", isNumeric = false, levels = listOf("LOW-", "LOW", "LOW+", "NOR-", "NOR", "NOR+", "HGH-", "HGH", "HGH+")),
         TipoMedicion("Humedad Ambiente", "%", isNumeric = true),
-        TipoMedicion("Temperatura ambiente", "°C", isNumeric = true)
+        TipoMedicion("Temperatura ambiente", "°C", isNumeric = true),
+        TipoMedicion("Altura planta", "cm", isNumeric = true),
+        TipoMedicion("Distancia luz-planta", "cm", isNumeric = true)
     )
 
     private lateinit var plantaSpinner: Spinner

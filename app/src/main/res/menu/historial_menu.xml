@@ -4,7 +4,7 @@
     <item
         android:id="@+id/action_filter"
         android:title="Filtrar"
-        android:icon="@android:drawable/ic_menu_search"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_delete_all"

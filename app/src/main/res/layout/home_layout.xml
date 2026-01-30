@@ -5,16 +5,9 @@
     android:padding="16dp">
 
     <Button
-        android:id="@+id/btn_historial"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Historial" />
-
-    <Button
         android:id="@+id/btn_plantas"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btn_historial"
         android:text="Plantas" />
 
     <Button
@@ -37,5 +30,12 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btn_alimentacion"
         android:text="Eventos" />
+
+    <Button
+        android:id="@+id/btn_historial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_eventos"
+        android:text="Historial" />
 
 </RelativeLayout>
