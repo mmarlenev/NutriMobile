@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.BundleCompat
 import androidx.fragment.app.DialogFragment
 import edu.istea.R
 import edu.istea.model.Alimentacion
@@ -38,8 +39,8 @@ class AddAlimentacionDialogFragment : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            plantas = it.getParcelableArrayList(ARG_PLANTAS)!!
-            alimentacionToEdit = it.getParcelable(ARG_ALIMENTACION)
+            plantas = BundleCompat.getParcelableArrayList(it, ARG_PLANTAS, Planta::class.java)!!
+            alimentacionToEdit = BundleCompat.getParcelable(it, ARG_ALIMENTACION, Alimentacion::class.java)
         }
     }
 

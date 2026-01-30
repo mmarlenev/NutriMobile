@@ -38,21 +38,23 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true">
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/btn_modificar_alimentacion"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:src="@android:drawable/ic_menu_edit"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
                 android:contentDescription="Modificar"
                 app:tint="@color/primary" />
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/btn_eliminar_alimentacion"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:src="@android:drawable/ic_menu_delete"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
                 android:contentDescription="Eliminar"
                 app:tint="@color/primary" />
         </LinearLayout>

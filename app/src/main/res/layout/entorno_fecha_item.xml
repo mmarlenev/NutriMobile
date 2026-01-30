@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:src="@android:drawable/ic_media_play"
+        android:src="@android:drawable/arrow_down_float"
         android:rotation="0"
         app:tint="@color/divider" />
 

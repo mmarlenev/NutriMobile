@@ -4,7 +4,7 @@ import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -35,8 +35,8 @@ class PlantaAdapter(
         private val nombre: TextView = itemView.findViewById(R.id.tv_planta_nombre)
         private val etapa: TextView = itemView.findViewById(R.id.tv_planta_etapa)
         private val fecha: TextView = itemView.findViewById(R.id.tv_planta_fecha)
-        private val modifyButton: ImageButton = itemView.findViewById(R.id.btn_modificar_planta)
-        private val deleteButton: ImageButton = itemView.findViewById(R.id.btn_eliminar_planta)
+        private val modifyButton: ImageView = itemView.findViewById(R.id.btn_modificar_planta)
+        private val deleteButton: ImageView = itemView.findViewById(R.id.btn_eliminar_planta)
         private lateinit var currentPlanta: Planta
 
         init {
@@ -58,8 +58,9 @@ class PlantaAdapter(
         fun bind(planta: Planta) {
             currentPlanta = planta
             nombre.text = planta.nombre
-            etapa.text = "Etapa: ${planta.etapa}"
-            fecha.text = "Fecha: ${planta.fechaOrigen}"
+            val context = itemView.context
+            etapa.text = context.getString(R.string.planta_etapa, planta.etapa)
+            fecha.text = context.getString(R.string.planta_fecha, planta.fechaOrigen)
         }
     }
 }

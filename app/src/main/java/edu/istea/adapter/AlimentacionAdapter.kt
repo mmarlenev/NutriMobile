@@ -4,7 +4,7 @@ import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -34,8 +34,8 @@ class AlimentacionAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
         private val descripcion: TextView = itemView.findViewById(R.id.tv_alimentacion_descripcion)
         private val info: TextView = itemView.findViewById(R.id.tv_alimentacion_info)
-        private val modifyButton: ImageButton = itemView.findViewById(R.id.btn_modificar_alimentacion)
-        private val deleteButton: ImageButton = itemView.findViewById(R.id.btn_eliminar_alimentacion)
+        private val modifyButton: ImageView = itemView.findViewById(R.id.btn_modificar_alimentacion)
+        private val deleteButton: ImageView = itemView.findViewById(R.id.btn_eliminar_alimentacion)
         private lateinit var currentAlimentacion: Alimentacion
 
         init {

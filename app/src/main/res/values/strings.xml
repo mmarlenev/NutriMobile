@@ -7,4 +7,6 @@
         <item>Floración</item>
         <item>Cosecha</item>
     </string-array>
+    <string name="planta_etapa">Etapa: %1$s</string>
+    <string name="planta_fecha">Fecha: %1$s</string>
 </resources>

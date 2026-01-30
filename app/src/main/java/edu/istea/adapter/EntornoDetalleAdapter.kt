@@ -4,7 +4,7 @@ import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -32,8 +32,8 @@ class EntornoDetalleAdapter(
         private val onDeleteClick: (Entorno) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
         private val descripcion: TextView = itemView.findViewById(R.id.tv_entorno_descripcion_detalle)
-        private val modifyButton: ImageButton = itemView.findViewById(R.id.btn_modificar_entorno_detalle)
-        private val deleteButton: ImageButton = itemView.findViewById(R.id.btn_eliminar_entorno_detalle)
+        private val modifyButton: ImageView = itemView.findViewById(R.id.btn_modificar_entorno_detalle)
+        private val deleteButton: ImageView = itemView.findViewById(R.id.btn_eliminar_entorno_detalle)
         private lateinit var currentEntorno: Entorno
 
         init {
