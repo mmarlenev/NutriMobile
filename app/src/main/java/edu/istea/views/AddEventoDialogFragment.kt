@@ -15,6 +15,9 @@ import edu.istea.model.Planta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AddEventoDialogFragment : DialogFragment() {
 
@@ -28,7 +31,6 @@ class AddEventoDialogFragment : DialogFragment() {
     private lateinit var potenciaLuzSpinner: Spinner
     private lateinit var ventiladorModoSpinner: Spinner
     private lateinit var mantenimientoSpinner: Spinner
-    private lateinit var fechaPicker: DatePicker
     private lateinit var plantaLabel: TextView
     private lateinit var sucesoLabel: TextView
     private lateinit var potenciaLuzLabel: TextView
@@ -87,7 +89,8 @@ class AddEventoDialogFragment : DialogFragment() {
     private fun handleSave(shouldDismiss: Boolean) {
         val sujeto = sujetoSpinner.selectedItem.toString()
         var suceso = sucesoSpinner.selectedItem.toString()
-        val fecha = "${fechaPicker.dayOfMonth}/${fechaPicker.month + 1}/${fechaPicker.year}"
+        val sdf = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
+        val fecha = sdf.format(Date())
 
         if (sujeto == "Lugar de Cultivo") {
             when (suceso) {
@@ -150,7 +153,6 @@ class AddEventoDialogFragment : DialogFragment() {
         potenciaLuzSpinner = view.findViewById(R.id.spinner_potencia_luz)
         ventiladorModoSpinner = view.findViewById(R.id.spinner_ventilador_modo)
         mantenimientoSpinner = view.findViewById(R.id.spinner_mantenimiento)
-        fechaPicker = view.findViewById(R.id.dp_fecha_evento)
         plantaLabel = view.findViewById(R.id.tv_planta_evento_label)
         sucesoLabel = view.findViewById(R.id.tv_suceso_evento_label)
         potenciaLuzLabel = view.findViewById(R.id.tv_potencia_luz_label)
@@ -323,11 +325,6 @@ class AddEventoDialogFragment : DialogFragment() {
                     ventiladorModoSpinner.setSelection(modoPos)
                 }
             }
-        }
-
-        val dateParts = evento.fecha.split("/")
-        if (dateParts.size == 3) {
-            fechaPicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
         }
     }
 

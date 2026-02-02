@@ -18,6 +18,9 @@ import edu.istea.model.TipoMedicion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AddEntornoDialogFragment : DialogFragment() {
 
@@ -39,7 +42,6 @@ class AddEntornoDialogFragment : DialogFragment() {
     )
 
     private lateinit var plantaSpinner: Spinner
-    private lateinit var fechaPicker: DatePicker
     private lateinit var tipoSpinner: Spinner
     private lateinit var valorEditText: EditText
     private lateinit var unidadTextView: TextView
@@ -126,7 +128,8 @@ class AddEntornoDialogFragment : DialogFragment() {
             }
         }
 
-        val fecha = "${fechaPicker.dayOfMonth}/${fechaPicker.month + 1}/${fechaPicker.year}"
+        val sdf = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
+        val fecha = sdf.format(Date())
 
         val entorno = entornoToEdit?.copy(
             plantaId = selectedPlanta.id, plantaNombre = selectedPlanta.nombre, fecha = fecha,
@@ -178,7 +181,6 @@ class AddEntornoDialogFragment : DialogFragment() {
 
     private fun setupViews(view: View) {
         plantaSpinner = view.findViewById(R.id.spinner_planta_entorno)
-        fechaPicker = view.findViewById(R.id.dp_fecha_entorno)
         tipoSpinner = view.findViewById(R.id.spinner_tipo_medicion)
         valorEditText = view.findViewById(R.id.et_valor_medicion)
         unidadTextView = view.findViewById(R.id.tv_unidad_medicion)
@@ -248,11 +250,6 @@ class AddEntornoDialogFragment : DialogFragment() {
                 val levelPos = tipo.levels!!.indexOf(entorno.valor)
                 if (levelPos != -1) valorNivelSpinner.setSelection(levelPos)
             }
-        }
-
-        val dateParts = entorno.fecha.split("/")
-        if (dateParts.size == 3) {
-            fechaPicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
         }
     }
 

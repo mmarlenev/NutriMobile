@@ -11,6 +11,9 @@ import edu.istea.R
 import edu.istea.model.Alimentacion
 import edu.istea.model.Insumo
 import edu.istea.model.Planta
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AddAlimentacionDialogFragment : DialogFragment() {
 
@@ -31,7 +34,6 @@ class AddAlimentacionDialogFragment : DialogFragment() {
     )
 
     private lateinit var plantaSpinner: Spinner
-    private lateinit var fechaPicker: DatePicker
     private lateinit var insumoSpinner: Spinner
     private lateinit var cantidadEditText: EditText
     private lateinit var unidadTextView: TextView
@@ -92,7 +94,8 @@ class AddAlimentacionDialogFragment : DialogFragment() {
 
         val selectedPlanta = plantas[plantaSpinner.selectedItemPosition]
         val selectedInsumo = insumos[insumoSpinner.selectedItemPosition]
-        val fecha = "${fechaPicker.dayOfMonth}/${fechaPicker.month + 1}/${fechaPicker.year}"
+        val sdf = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
+        val fecha = sdf.format(Date())
         val listener = activity as? AddAlimentacionDialogListener
 
         val alimentacion = alimentacionToEdit?.copy(
@@ -145,7 +148,6 @@ class AddAlimentacionDialogFragment : DialogFragment() {
 
     private fun setupViews(view: View) {
         plantaSpinner = view.findViewById(R.id.spinner_planta_alimentacion)
-        fechaPicker = view.findViewById(R.id.dp_fecha_alimentacion)
         insumoSpinner = view.findViewById(R.id.spinner_insumo)
         cantidadEditText = view.findViewById(R.id.et_cantidad_insumo)
         unidadTextView = view.findViewById(R.id.tv_unidad_insumo)
@@ -179,10 +181,6 @@ class AddAlimentacionDialogFragment : DialogFragment() {
 
         cantidadEditText.setText(alimentacion.cantidad.toString())
 
-        val dateParts = alimentacion.fecha.split("/")
-        if (dateParts.size == 3) {
-            fechaPicker.updateDate(dateParts[2].toInt(), dateParts[1].toInt() - 1, dateParts[0].toInt())
-        }
     }
 
     companion object {

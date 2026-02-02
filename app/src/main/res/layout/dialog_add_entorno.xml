@@ -74,19 +74,4 @@
 
     </FrameLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Fecha"
-        android:textAppearance="?attr/textAppearanceCaption"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="16dp" />
-
-    <DatePicker
-        android:id="@+id/dp_fecha_entorno"
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:datePickerMode="spinner"
-        android:calendarViewShown="false" />
-
 </LinearLayout>
