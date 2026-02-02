@@ -55,8 +55,8 @@ class AddAlimentacionDialogFragment : DialogFragment() {
         val builder = AlertDialog.Builder(requireContext()).setView(view)
 
         if (alimentacionToEdit == null) {
-            builder.setPositiveButton("Guardar y Finalizar") { _, _ -> handleSave(true) }
-            builder.setNeutralButton("Guardar y Añadir Otro", null)
+            builder.setPositiveButton("Finalizar") { _, _ -> handleSave(true) }
+            builder.setNeutralButton("Añadir otro", null)
         } else {
             builder.setPositiveButton("Actualizar") { _, _ -> handleSave(true) }
         }

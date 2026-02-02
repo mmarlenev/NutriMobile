@@ -43,10 +43,10 @@ class PlantaAdapter(
             modifyButton.setOnClickListener {
                 onModifyClick(currentPlanta)
             }
-            deleteButton.setOnClickListener {
+            deleteButton.setOnClickListener { 
                 AlertDialog.Builder(itemView.context)
-                    .setTitle("Confirmar Eliminación")
-                    .setMessage("¿Estás seguro de que quieres eliminar esta planta y todos sus eventos asociados?")
+                    .setTitle("Eliminar Planta")
+                    .setMessage("¿Estás seguro de que quieres eliminar ${currentPlanta.nombre}?")
                     .setPositiveButton("Eliminar") { _, _ ->
                         onDeleteClick(currentPlanta)
                     }

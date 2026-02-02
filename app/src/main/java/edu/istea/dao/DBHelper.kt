@@ -286,7 +286,11 @@ class DBHelper(context: Context) :
     }
 
     fun updatePlanta(planta: Planta) {
+        val oldPlanta = getPlanta(planta.id)
         performDbOperation { db ->
+            if (oldPlanta != null && oldPlanta.etapa != planta.etapa) {
+                saveHistorialEvento(db, "Cambio de Etapa", "La planta '${planta.nombre}' ha pasado a la etapa de ${planta.etapa}.")
+            }
             val values = ContentValues()
             values.put(COLUMN_PLANTA_NOMBRE, planta.nombre)
             values.put(COLUMN_PLANTA_GENETICA, planta.tipo)
@@ -349,6 +353,18 @@ class DBHelper(context: Context) :
             if (deletedRows > 0) {
                 saveHistorialEvento(db, "Entorno Eliminado", "Se eliminó una medición de entorno.")
             }
+        }
+    }
+    
+    fun deleteEntornosByPlanta(plantaId: Int) {
+        performDbOperation { db ->
+            db.delete(TABLE_ENTORNO, "$COLUMN_ENTORNO_PLANTA_ID = ?", arrayOf(plantaId.toString()))
+        }
+    }
+
+    fun deleteAlimentacionByPlanta(plantaId: Int) {
+        performDbOperation { db ->
+            db.delete(TABLE_ALIMENTACION, "$COLUMN_ALIMENTACION_PLANTA_ID = ?", arrayOf(plantaId.toString()))
         }
     }
 

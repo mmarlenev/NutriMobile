@@ -62,8 +62,8 @@ class AddEventoDialogFragment : DialogFragment() {
         val builder = AlertDialog.Builder(requireContext()).setView(view)
 
         if (eventoToEdit == null) {
-            builder.setPositiveButton("Guardar y Finalizar") { _, _ -> handleSave(true) }
-            builder.setNeutralButton("Guardar y Añadir Otro", null) // Listener nulo para evitar cierre
+            builder.setPositiveButton("Finalizar") { _, _ -> handleSave(true) }
+            builder.setNeutralButton("Añadir otro", null) // Listener nulo para evitar cierre
         } else {
             builder.setPositiveButton("Actualizar") { _, _ -> handleSave(true) }
         }
